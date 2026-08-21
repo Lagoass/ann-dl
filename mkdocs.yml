@@ -42,7 +42,6 @@ theme:
     - navigation.path
     - navigation.tracking
     - navigation.expand
-    - navigation.indexes
     - toc.follow
   icon:
     admonition:
