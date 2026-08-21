@@ -1,0 +1,26 @@
+# MkDocs
+site/
+.cache/
+
+# Python
+env/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Build
+target/
+
+# Datasets grandes (baixar via script, não versionar)
+data/raw/
+*.zip

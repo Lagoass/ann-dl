@@ -1,0 +1,161 @@
+site_name: ANN & DL — Gustavo Lagôa
+site_author: Lagôa, G.
+site_description: Entregas de Redes Neurais Artificiais e Deep Learning — Insper 2026.2
+site_url: https://lagoass.github.io/LagoaNNPages
+repo_url: https://github.com/Lagoass/LagoaNNPages
+repo_name: Lagoass/LagoaNNPages
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      primary: grey
+      toggle:
+        icon: material/toggle-switch
+        name: Mudar para modo claro
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: grey
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Mudar para modo escuro
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: grey
+      toggle:
+        icon: material/toggle-switch
+        name: Mudar para preferência do sistema
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - content.tooltips
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.top
+    - navigation.path
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+  icon:
+    admonition:
+      note: fontawesome/solid/note-sticky
+      abstract: fontawesome/solid/book
+      info: fontawesome/solid/circle-info
+      tip: fontawesome/solid/bullhorn
+      success: fontawesome/solid/check
+      question: fontawesome/solid/circle-question
+      warning: fontawesome/solid/triangle-exclamation
+      failure: fontawesome/solid/bomb
+      danger: fontawesome/solid/skull
+      bug: fontawesome/solid/robot
+      example: fontawesome/solid/flask
+      quote: fontawesome/solid/quote-left
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - markdown_grid_tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      url_download: true
+      check_paths: true
+      base_path:
+        - .
+        - docs
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: python
+          class: python
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - footnotes
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.blocks.caption
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - glightbox
+  - git-revision-date-localized:
+      enable_creation_date: true
+      fallback_to_build_date: true
+  - git-authors
+  # Só roda no CI (onde há GITHUB_TOKEN); localmente fica desligado para não
+  # bater no rate limit da API do GitHub durante o `mkdocs serve`.
+  - git-committers:
+      enabled: !ENV [CI, false]
+      repository: Lagoass/LagoaNNPages
+      branch: main
+      token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
+  - search:
+      lang:
+        - pt
+        - en
+  - badges
+  - minify:
+      minify_html: true
+  - markdown-exec
+  - render_swagger:
+      allow_arbitrary_locations: true
+  - termynal:
+      prompt_literal_start:
+        - "$"
+        - ">"
+  - mkdocs-jupyter:
+      execute: false
+      allow_errors: false
+      include_source: true
+
+extra_javascript:
+  - https://unpkg.com/mathjax/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://fastly.jsdelivr.net/npm/jquery/dist/jquery.min.js
+  - https://fastly.jsdelivr.net/npm/echarts/dist/echarts.min.js
+  # Para a implementação do mkdocs-jupyter
+  - javascripts/mathjax.js
+
+nav:
+  - Home: index.md
+  - Exercícios:
+    - 1 — Data: exercises/data/index.md
+    - 2 — Perceptron: exercises/perceptron/index.md
+    - 3 — MLP: exercises/mlp/index.md
+    - 4 — Transformers & Attention: exercises/transformers/index.md
+    - 5 — VAE: exercises/vae/index.md
+    - 6 — LLM Fine-Tuning: exercises/llm-finetuning/index.md
+  - Projetos:
+    - 1 — Classification: projects/classification/index.md
+    - 2 — Regression: projects/regression/index.md
+    - 3 — Generative: projects/generative/index.md
+  - Sobre este site: setup/index.md

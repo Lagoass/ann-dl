@@ -1,0 +1,44 @@
+name: ci
+on:
+  - push
+  - pull_request
+
+# Environment
+env:
+  CI: true
+  PYTHON_VERSION: "3.12"
+
+# Jobs to run
+jobs:
+
+  # Build and deploy documentation site
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    # Necessário para o `mkdocs gh-deploy` conseguir escrever na branch gh-pages,
+    # mesmo que o padrão do repositório seja "Read repository contents permission".
+    permissions:
+      contents: write
+
+    steps:
+
+      # Checkout source from GitHub — histórico completo é necessário para os
+      # plugins git-revision-date-localized / git-authors / git-committers.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Install Python runtime and dependencies
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      # pip
+      - run: pip install -r requirements.txt
+
+      # deploy
+      - run: mkdocs gh-deploy --force
+        env:
+          MKDOCS_GIT_COMMITTERS_APIKEY: ${{ secrets.GITHUB_TOKEN }}
