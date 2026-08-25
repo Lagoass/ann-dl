@@ -22,7 +22,7 @@ abordagem, o código comentado, as figuras geradas e a análise dos resultados.
 
 ### Exercícios (individuais)
 
-- [ ] [1 — Data](exercises/data/index.md) · prazo **27/ago (qui), 23:59**
+- [x] [1 — Data](exercises/data/index.md) · prazo **27/ago (qui), 23:59**
 - [ ] [2 — Perceptron](exercises/perceptron/index.md) · prazo a confirmar
 - [ ] [3 — MLP](exercises/mlp/index.md) · prazo a confirmar
 - [ ] [4 — Transformers & Attention](exercises/transformers/index.md) · prazo a confirmar
