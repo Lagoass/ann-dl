@@ -1,49 +1,50 @@
 # %% [markdown]
-# # Exercise 1 — Point Clouds: Geometry and Spread in 2D
+# # Exercício 1 — Nuvens de pontos: geometria e dispersão em 2D
 #
-# Geração e medição de nuvens de pontos 2D, observando como a dispersão afeta a
-# complexidade das fronteiras de decisão.
-#
-# Semente fixa: `rng = np.random.default_rng(42)`, o mesmo `rng` em todo o notebook.
+# A ideia aqui é gerar nuvens de pontos 2D e **medir** o quanto elas se misturam antes
+# de pensar em qualquer rede. Uso a mesma seed do começo ao fim:
+# `rng = np.random.default_rng(42)`.
 
 # %%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-rng = np.random.default_rng(42)  # semente fixa exigida pelo enunciado
+rng = np.random.default_rng(42)  # mesma seed em todo o notebook
 
-# Parâmetros do enunciado: média e desvio-padrão POR EIXO de cada classe
-MEANS = np.array([[2, 3], [5, 6], [8, 1], [15, 4]], dtype=float)
-STDS  = np.array([[0.8, 2.5], [1.2, 1.9], [0.9, 0.9], [0.5, 2.0]], dtype=float)
-N_PER_CLASS = 100
-COLORS = ["tab:blue", "tab:orange", "tab:green", "tab:red"]
-
-
-def gen_clouds(rng, scale=1.0):
-    """Gera as 4 classes (100 pontos cada) com os desvios multiplicados por `scale`."""
-    X = np.vstack([
-        rng.normal(MEANS[k], STDS[k] * scale, size=(N_PER_CLASS, 2))
-        for k in range(4)
-    ])
-    y = np.repeat(np.arange(4), N_PER_CLASS)
-    return X, y
+# identidade visual dos meus gráficos: paleta fixa + eixos limpos
+CORES = ["#E8A13D", "#C75146", "#6B8F3D", "#33658A"]  # âmbar, telha, oliva, aço
+plt.rcParams.update({
+    "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.alpha": 0.25,
+    "axes.prop_cycle": plt.cycler(color=CORES),
+    "figure.dpi": 110,
+})
 
 # %% [markdown]
-# ## A — Generate the clouds
+# ## A — Gerar as nuvens
+#
+# Parâmetros do enunciado: 4 classes, 100 pontos cada, com média e desvio-padrão
+# **por eixo** (nada de gaussiana esférica aqui).
 
 # %%
-X1, y1 = gen_clouds(rng, scale=1.0)  # dataset original (s = 1)
+MEDIAS = np.array([[2, 3], [5, 6], [8, 1], [15, 4]], dtype=float)
+DESVIOS = np.array([[0.8, 2.5], [1.2, 1.9], [0.9, 0.9], [0.5, 2.0]], dtype=float)
 
+# 100 pontos por classe: cada eixo com sua média e desvio próprios
+X1 = np.vstack([rng.normal(MEDIAS[k], DESVIOS[k], size=(100, 2)) for k in range(4)])
+y1 = np.repeat(np.arange(4), 100)
+print("dataset:", X1.shape, "| classes:", np.bincount(y1))
+
+# %%
 fig, ax = plt.subplots(figsize=(8, 6))
 for k in range(4):
-    pts = X1[y1 == k]
-    ax.scatter(pts[:, 0], pts[:, 1], s=14, alpha=0.65, color=COLORS[k], label=f"Classe {k}")
-# centro (média) de cada nuvem marcado com X preto
-ax.scatter(MEANS[:, 0], MEANS[:, 1], marker="X", s=140, color="black", zorder=5,
+    ax.scatter(X1[y1 == k, 0], X1[y1 == k, 1], s=14, alpha=0.65, color=CORES[k],
+               label=f"Classe {k}")
+ax.scatter(MEDIAS[:, 0], MEDIAS[:, 1], marker="X", s=140, color="black", zorder=5,
            label="Centros")
 for k in range(4):
-    ax.annotate(f"$\\mu_{k}$", MEANS[k], textcoords="offset points", xytext=(8, 6))
+    ax.annotate(f"$\\mu_{k}$", MEDIAS[k], textcoords="offset points", xytext=(8, 6))
 ax.set_title("Figura 1 — Nuvens de pontos 2D (s = 1) com os centros marcados")
 ax.set_xlabel("$x_1$")
 ax.set_ylabel("$x_2$")
@@ -52,37 +53,35 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# As 400 amostras (100 por classe) seguem os parâmetros do enunciado. A dispersão é
-# **anisotrópica**: a classe 0 ($\sigma = [0.8,\ 2.5]$) alonga-se na vertical em direção
-# à classe 1, enquanto a classe 2 é quase isotrópica e a classe 3, em $\mu = [15, 4]$,
-# fica afastada das demais.
+# O que me chama atenção de cara: a classe 0 ($\sigma = [0.8,\ 2.5]$) é um charuto
+# vertical apontando direto para a classe 1, enquanto a classe 2 é quase redonda e a
+# classe 3, lá em $\mu = [15, 4]$, vive isolada das outras.
 #
-# ## B — More or less spread out
+# ## B — Mais ou menos espalhadas
 #
-# Os mesmos 4 conjuntos de parâmetros, gerados para cada
-# $s \in \{0.5,\ 1.0,\ 2.0,\ 4.0\}$ — as médias nunca mudam, apenas os desvios são
-# multiplicados por $s$. Para $s = 1$ reutilizamos o dataset do item A (mesma amostra).
+# Agora as mesmas 4 classes, geradas 4 vezes, multiplicando **todos** os desvios por
+# $s \in \{0.5,\ 1.0,\ 2.0,\ 4.0\}$. As médias não mudam — só o espalhamento. Para
+# $s = 1$ reutilizo o dataset do item A (mesma amostra).
 
 # %%
-datasets = {1.0: (X1, y1)}
-for s in (0.5, 2.0, 4.0):
-    datasets[s] = gen_clouds(rng, scale=s)
+escalas = [0.5, 1.0, 2.0, 4.0]
+dados = {1.0: (X1, y1)}  # s = 1 é o dataset do item A
+for s in [0.5, 2.0, 4.0]:
+    X = np.vstack([rng.normal(MEDIAS[k], DESVIOS[k] * s, size=(100, 2)) for k in range(4)])
+    dados[s] = (X, np.repeat(np.arange(4), 100))
 
-SCALES = [0.5, 1.0, 2.0, 4.0]
-
-# limites de eixo compartilhados, calculados sobre a união dos 4 datasets
-allX = np.vstack([datasets[s][0] for s in SCALES])
-xlim = (allX[:, 0].min() - 1, allX[:, 0].max() + 1)
-ylim = (allX[:, 1].min() - 1, allX[:, 1].max() + 1)
+# limites de eixo iguais nos 4 subplots — senão a comparação mente
+todos = np.vstack([dados[s][0] for s in escalas])
+xlim = (todos[:, 0].min() - 1, todos[:, 0].max() + 1)
+ylim = (todos[:, 1].min() - 1, todos[:, 1].max() + 1)
 
 fig, axes = plt.subplots(2, 2, figsize=(11, 9), sharex=True, sharey=True)
-for ax, s in zip(axes.ravel(), SCALES):
-    X, y = datasets[s]
+for ax, s in zip(axes.ravel(), escalas):
+    X, y = dados[s]
     for k in range(4):
-        pts = X[y == k]
-        ax.scatter(pts[:, 0], pts[:, 1], s=8, alpha=0.6, color=COLORS[k],
+        ax.scatter(X[y == k, 0], X[y == k, 1], s=8, alpha=0.6, color=CORES[k],
                    label=f"Classe {k}" if s == 0.5 else None)
-    ax.scatter(MEANS[:, 0], MEANS[:, 1], marker="X", s=80, color="black", zorder=5)
+    ax.scatter(MEDIAS[:, 0], MEDIAS[:, 1], marker="X", s=80, color="black", zorder=5)
     ax.set_title(f"s = {s}")
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
@@ -102,85 +101,84 @@ plt.show()
 # \qquad \bar{\sigma}_k = \frac{\sigma_{k,x} + \sigma_{k,y}}{2} $$
 
 # %%
-sig_bar = STDS.mean(axis=1)  # dispersão média de cada classe
+sigma_barra = DESVIOS.mean(axis=1)  # dispersão média de cada classe
 
-rows = []
+linhas = []
 for i in range(4):
     for j in range(i + 1, 4):
-        dist = np.linalg.norm(MEANS[i] - MEANS[j])
-        r = dist / (sig_bar[i] + sig_bar[j])
-        rows.append({"par": f"({i}, {j})", "‖μi − μj‖": round(dist, 3),
-                     "σ̄i + σ̄j": round(sig_bar[i] + sig_bar[j], 2), "r_ij": round(r, 3)})
-r_table = pd.DataFrame(rows)
-print(r_table.to_string(index=False))
+        dist = np.linalg.norm(MEDIAS[i] - MEDIAS[j])
+        r = dist / (sigma_barra[i] + sigma_barra[j])
+        linhas.append({"par": f"({i}, {j})", "‖μi − μj‖": round(dist, 3),
+                       "σ̄i + σ̄j": round(sigma_barra[i] + sigma_barra[j], 2),
+                       "r_ij": round(r, 3)})
+tabela_r = pd.DataFrame(linhas)
+print(tabela_r.to_string(index=False))
 
-r_min = r_table.loc[r_table["r_ij"].idxmin()]
-print(f"\nMenor razão: par {r_min['par']} com r = {r_min['r_ij']}")
-print(f"Como r_ij ∝ 1/s, em s = 2 esse valor passa a {r_min['r_ij'] / 2:.3f}")
+menor = tabela_r.loc[tabela_r["r_ij"].idxmin()]
+print(f"\nMenor razão: par {menor['par']} com r = {menor['r_ij']}")
+print(f"Como r_ij ∝ 1/s, em s = 2 esse valor vira {menor['r_ij'] / 2:.3f}")
 
 # %% [markdown]
-# O par mais próximo é **(0, 1)**, com $r_{01} = 1.326$ — todos os demais pares têm
-# $r_{ij} \geq 2.38$. Como as médias não mudam com $s$, vale $r_{ij} \propto 1/s$: em
-# $s = 2$, o menor valor passa a $r_{01} = 1.326 / 2 = \mathbf{0.663}$, sem gerar nada
-# de novo.
+# O par mais apertado é o **(0, 1)**, com $r_{01} = 1.326$ — todos os outros têm
+# $r_{ij} \geq 2.38$. E aqui está o pulo do gato: como as médias não mudam com $s$,
+# vale $r_{ij} \propto 1/s$. Então em $s = 2$ o menor valor vira
+# $1.326 / 2 = \mathbf{0.663}$, sem eu precisar gerar um ponto sequer.
 #
 # ### Mixing rate
 #
-# Fração de pontos cujo centro de classe mais próximo (entre as 4 médias teóricas)
-# **não** é o da própria classe — medida puramente geométrica, nada é treinado.
+# Fração de pontos cujo centro mais próximo (entre as 4 médias teóricas) **não** é o da
+# própria classe. É só comparar distâncias — nada é treinado.
 
 # %%
-def mixing_rate(X, y):
-    """Fração de pontos mais próximos do centro de outra classe."""
-    d2 = ((X[:, None, :] - MEANS[None, :, :]) ** 2).sum(axis=-1)  # (400, 4)
-    return float((d2.argmin(axis=1) != y).mean())
-
-mix = {s: mixing_rate(*datasets[s]) for s in SCALES}
-for s, m in mix.items():
-    print(f"mixing rate (s = {s}): {m:.4f}  ({int(m * 400)}/400 pontos)")
+mistura = {}
+for s in escalas:
+    X, y = dados[s]
+    d2 = ((X[:, None, :] - MEDIAS[None, :, :]) ** 2).sum(axis=2)  # (400, 4)
+    mistura[s] = float((d2.argmin(axis=1) != y).mean())
+    print(f"mixing rate (s = {s}): {mistura[s]:.4f}  ({int(mistura[s] * 400)}/400 pontos)")
 
 fig, ax = plt.subplots(figsize=(7, 4.5))
-ax.plot(SCALES, [mix[s] for s in SCALES], marker="o", color="tab:blue",
+ax.plot(escalas, [mistura[s] for s in escalas], marker="o", color=CORES[0],
         label="mixing rate")
-for s in SCALES:
-    ax.annotate(f"{mix[s]:.2%}", (s, mix[s]), textcoords="offset points", xytext=(6, 8))
+for s in escalas:
+    ax.annotate(f"{mistura[s]:.2%}", (s, mistura[s]), textcoords="offset points",
+                xytext=(6, 8))
 ax.set_title("Figura 3 — Mixing rate em função do fator de escala s")
 ax.set_xlabel("fator de escala $s$")
 ax.set_ylabel("mixing rate")
-ax.set_xticks(SCALES)
+ax.set_xticks(escalas)
 ax.legend()
 plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# Valores: **0.00%** ($s{=}0.5$), **5.00%** ($s{=}1$), **19.25%** ($s{=}2$),
+# Deu: **0.00%** ($s{=}0.5$), **5.00%** ($s{=}1$), **19.25%** ($s{=}2$),
 # **48.25%** ($s{=}4$).
 #
-# **A partir de que escala as retas deixam de separar?** A partir de $s = 2$. Em
-# $s = 1$ a mistura é de 5% e concentra-se no par (0, 1) — um conjunto de retas ainda
-# separa quase tudo. Em $s = 2$ a mistura salta para 19.25% e o menor
-# $r_{ij}$ cai para **0.663**: a distância entre os centros 0 e 1 torna-se *menor* que
-# a soma das dispersões médias das duas nuvens, ou seja, as nuvens se interpenetram e
-# nenhum arranjo de retas evita uma fração grande de erro. Em $s = 4$
-# ($r_{01} = 0.33$), quase metade dos pontos está mais perto de um centro alheio.
+# **A partir de que escala as retas param de funcionar?** A partir de $s = 2$. Em
+# $s = 1$ a mistura é de 5% e mora quase toda no par (0, 1) — um conjunto de retas
+# ainda dá conta do resto. Em $s = 2$ a mistura salta para 19.25% e o menor $r_{ij}$
+# cai para **0.663**: a distância entre os centros 0 e 1 fica *menor* que a soma das
+# dispersões médias, ou seja, as nuvens se atravessam e não existe arranjo de retas que
+# escape de uma fração grande de erro. Em $s = 4$ ($r_{01} = 0.33$), quase metade dos
+# pontos já está mais perto de um centro alheio.
 #
-# ## C — Analysis
+# ## C — Análise
 
 # %%
-# Esboço das fronteiras: partição do plano pela regra do centro mais próximo
-# (fronteiras lineares, aproximação do que uma rede pequena aprenderia).
+# Meu esboço das fronteiras: divido o plano pela regra do centro mais próximo
+# (fronteiras retas — aproximação do que uma rede pequena aprenderia)
 gx, gy = np.meshgrid(np.linspace(*xlim, 500), np.linspace(*ylim, 500))
-grid = np.stack([gx.ravel(), gy.ravel()], axis=1)
-Z = ((grid[:, None, :] - MEANS[None, :, :]) ** 2).sum(-1).argmin(1).reshape(gx.shape)
+grade = np.stack([gx.ravel(), gy.ravel()], axis=1)
+Z = ((grade[:, None, :] - MEDIAS[None, :, :]) ** 2).sum(axis=2).argmin(axis=1).reshape(gx.shape)
 
 fig, ax = plt.subplots(figsize=(8, 6))
-ax.contourf(gx, gy, Z, levels=[-0.5, 0.5, 1.5, 2.5, 3.5],
-            colors=COLORS, alpha=0.15)
+ax.contourf(gx, gy, Z, levels=[-0.5, 0.5, 1.5, 2.5, 3.5], colors=CORES, alpha=0.15)
 ax.contour(gx, gy, Z, levels=[0.5, 1.5, 2.5], colors="black", linewidths=1)
 for k in range(4):
-    pts = X1[y1 == k]
-    ax.scatter(pts[:, 0], pts[:, 1], s=14, alpha=0.65, color=COLORS[k], label=f"Classe {k}")
-ax.scatter(MEANS[:, 0], MEANS[:, 1], marker="X", s=140, color="black", zorder=5,
+    ax.scatter(X1[y1 == k, 0], X1[y1 == k, 1], s=14, alpha=0.65, color=CORES[k],
+               label=f"Classe {k}")
+ax.scatter(MEDIAS[:, 0], MEDIAS[:, 1], marker="X", s=140, color="black", zorder=5,
            label="Centros")
 ax.set_title("Figura 1b — Esboço das fronteiras de decisão sobre o dataset s = 1")
 ax.set_xlabel("$x_1$")
@@ -192,31 +190,28 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# **Sobreposição em $s = 1$.** A única região de conflito relevante é entre as classes
-# 0 e 1 ($r_{01} = 1.326$): a cauda vertical da classe 0 invade a nuvem da classe 1.
-# Os pares restantes têm $r_{ij} \geq 2.38$ e praticamente não se tocam.
+# **Sobreposição em $s = 1$.** A única briga de verdade é entre as classes 0 e 1
+# ($r_{01} = 1.326$): a cauda vertical da 0 invade a nuvem da 1. Os outros pares têm
+# $r_{ij} \geq 2.38$ e mal se encostam.
 #
-# **Uma única fronteira linear?** Não — uma reta divide o plano em apenas duas regiões,
-# e aqui há 4 classes. **Um conjunto de fronteiras lineares?** Sim, quase: a partição
-# esboçada na Figura 1b (fronteiras lineares entre centros vizinhos) classifica
-# corretamente 95% dos pontos; os 5% de erro ficam na zona 0–1, onde as nuvens se
-# sobrepõem de fato.
+# **Uma única fronteira linear resolve?** Não — uma reta corta o plano em só duas
+# regiões, e eu tenho 4 classes. **Um conjunto de retas?** Quase: a partição da
+# Figura 1b acerta 95% dos pontos; os 5% que sobram estão na zona 0–1, onde as
+# distribuições se sobrepõem de fato.
 #
-# **Esboço.** As fronteiras da Figura 1b são as que uma rede tenderia a aprender:
-# cortes aproximadamente lineares entre centros vizinhos. Uma rede com mais capacidade
-# curvaria o corte 0–1 (a classe 0 é muito mais alongada em $x_2$ que a 1), mas nenhuma
-# fronteira elimina a região onde as duas distribuições se misturam.
+# **O esboço.** As fronteiras da Figura 1b são o que eu espero de uma rede treinada:
+# cortes aproximadamente retos entre centros vizinhos. Com mais capacidade ela curvaria
+# o corte 0–1 (a classe 0 é bem mais esticada em $x_2$ que a 1), mas nenhuma fronteira
+# elimina a região onde as duas densidades se misturam.
 #
-# **Relação com o item B.** Quanto maior a dispersão, maior a área em que as densidades
-# das classes se sobrepõem — e todo ponto nessa área pode pertencer a mais de uma classe.
-# Esse é um **erro irredutível**, que pertence aos dados: a mixing rate de 5% → 19% → 48%
-# quantifica exatamente o crescimento da região onde qualquer classificador,
-# por melhor que seja, necessariamente erra.
+# **Ligando com o item B.** Quanto maior a dispersão, maior a área onde as densidades
+# das classes se sobrepõem — e ali qualquer classificador erra, por melhor que seja.
+# Esse é o **erro irredutível**, que pertence aos dados: a mixing rate de
+# 5% → 19% → 48% é exatamente essa região crescendo.
 #
 # ---
 #
-# > **Aprendizado.** A dificuldade de classificação é geométrica e mensurável antes de
-# > qualquer treinamento: o que importa é a distância entre centros **relativa à
-# > dispersão** ($r_{ij}$), não a distância absoluta. Quando $r_{ij}$ cai abaixo de ~1,
-# > as nuvens se interpenetram e surge um erro irredutível que nenhuma arquitetura
-# > remove.
+# > **O que eu tiro daqui:** a dificuldade de classificar é geométrica e dá para medir
+# > antes de treinar qualquer coisa. O que importa é a distância entre centros
+# > **relativa à dispersão** ($r_{ij}$), não a absoluta — e quando $r_{ij}$ cai abaixo
+# > de ~1, as nuvens se atravessam e nasce um erro que nenhuma arquitetura remove.

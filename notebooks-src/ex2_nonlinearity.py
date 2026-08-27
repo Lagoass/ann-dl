@@ -1,21 +1,30 @@
 # %% [markdown]
-# # Exercise 2 — Non-Linearity in Higher Dimensions
+# # Exercício 2 — Não-linearidade em dimensões mais altas
 #
-# Dois datasets 5D com a mesma dimensionalidade e estruturas diferentes: gaussianas
-# deslocadas (Dataset I) e cascas concêntricas (Dataset II).
+# Dois datasets 5D com a mesma dimensionalidade e estruturas bem diferentes: gaussianas
+# deslocadas (Dataset I) contra cascas concêntricas (Dataset II). A pergunta de fundo:
+# o que medidas *lineares* conseguem enxergar em cada um?
 #
-# Semente fixa: `rng = np.random.default_rng(42)`, o mesmo `rng` em todo o notebook.
+# Mesma seed do começo ao fim: `rng = np.random.default_rng(42)`.
 
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
-rng = np.random.default_rng(42)  # semente fixa exigida pelo enunciado
-N = 500
+rng = np.random.default_rng(42)  # mesma seed em todo o notebook
+
+# identidade visual dos meus gráficos: paleta fixa + eixos limpos
+CORES = ["#E8A13D", "#C75146", "#6B8F3D", "#33658A"]  # âmbar, telha, oliva, aço
+plt.rcParams.update({
+    "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.alpha": 0.25,
+    "axes.prop_cycle": plt.cycler(color=CORES),
+    "figure.dpi": 110,
+})
 
 # %% [markdown]
-# ## A — Dataset I: shifted Gaussians
+# ## A — Dataset I: gaussianas deslocadas
 
 # %%
 mu_A = np.zeros(5)
@@ -36,36 +45,39 @@ Sigma_B = np.array([
     [ 0.0,  0.0, 0.0, 0.3, 1.5],
 ])
 
-X_A = rng.multivariate_normal(mu_A, Sigma_A, N)
-X_B = rng.multivariate_normal(mu_B, Sigma_B, N)
+X_A = rng.multivariate_normal(mu_A, Sigma_A, 500)
+X_B = rng.multivariate_normal(mu_B, Sigma_B, 500)
 print("Dataset I:", X_A.shape, X_B.shape)
 
 # %% [markdown]
-# As classes têm dispersões diferentes: $\Sigma_B$ tem variâncias maiores (1.5 vs. 1.0)
-# e correlação **negativa** entre as duas primeiras features (−0.7), enquanto em
-# $\Sigma_A$ ela é positiva (+0.8).
+# Repare que as dispersões são diferentes de propósito: $\Sigma_B$ tem variâncias
+# maiores (1.5 contra 1.0) e correlação **negativa** entre as duas primeiras features
+# (−0.7), enquanto em $\Sigma_A$ ela é positiva (+0.8).
 #
-# ## B — Dataset II: concentric shells
+# ## B — Dataset II: cascas concêntricas
 #
-# Direções uniformes na esfera unitária de $\mathbb{R}^5$
-# ($v \sim \mathcal{N}(0, I_5)$, $u = v/\lVert v \rVert$) e raio gaussiano por classe;
-# cada ponto é $x = \rho \cdot u$. O parâmetro `0.4` do enunciado foi tratado como
+# Sorteio uma direção uniforme na esfera unitária de $\mathbb{R}^5$
+# ($v \sim \mathcal{N}(0, I_5)$, $u = v/\lVert v \rVert$) e multiplico por um raio
+# gaussiano: $x = \rho \cdot u$. O `0.4` do enunciado eu tratei como
 # **desvio-padrão** do raio.
 
 # %%
-def shells(rng, radius_mean, radius_sd, n=N):
-    """Casca esférica em 5D: direção uniforme na esfera unitária × raio gaussiano."""
-    v = rng.normal(size=(n, 5))
-    u = v / np.linalg.norm(v, axis=1, keepdims=True)  # direção na esfera unitária
-    rho = rng.normal(radius_mean, radius_sd, n)       # raio
-    return rho[:, None] * u
+# Classe C (núcleo): raio ~ N(2.0, 0.4)
+v = rng.normal(size=(500, 5))
+u = v / np.linalg.norm(v, axis=1, keepdims=True)  # direção na esfera unitária
+rho = rng.normal(2.0, 0.4, 500)
+X_C = rho[:, None] * u
 
-X_C = shells(rng, 2.0, 0.4)  # núcleo
-X_D = shells(rng, 5.0, 0.4)  # casca
+# Classe D (casca): mesmo processo, raio ~ N(5.0, 0.4)
+v = rng.normal(size=(500, 5))
+u = v / np.linalg.norm(v, axis=1, keepdims=True)
+rho = rng.normal(5.0, 0.4, 500)
+X_D = rho[:, None] * u
+
 print("Dataset II:", X_C.shape, X_D.shape)
 
 # %% [markdown]
-# ## C — Visualize and compare
+# ## C — Visualizar e comparar
 
 # %%
 # PCA por dataset (ajustado sobre as duas classes juntas)
@@ -75,11 +87,13 @@ P_A, P_B = pca_1.transform(X_A), pca_1.transform(X_B)
 P_C, P_D = pca_2.transform(X_C), pca_2.transform(X_D)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-axes[0].scatter(P_A[:, 0], P_A[:, 1], s=10, alpha=0.55, color="tab:blue",  label="Classe A")
-axes[0].scatter(P_B[:, 0], P_B[:, 1], s=10, alpha=0.55, color="tab:red",   label="Classe B")
+axes[0].scatter(P_A[:, 0], P_A[:, 1], s=10, alpha=0.55, color=CORES[3], label="Classe A")
+axes[0].scatter(P_B[:, 0], P_B[:, 1], s=10, alpha=0.55, color=CORES[1], label="Classe B")
 axes[0].set_title("Dataset I — gaussianas deslocadas")
-axes[1].scatter(P_C[:, 0], P_C[:, 1], s=10, alpha=0.55, color="tab:green", label="Classe C (núcleo)")
-axes[1].scatter(P_D[:, 0], P_D[:, 1], s=10, alpha=0.55, color="tab:purple", label="Classe D (casca)")
+axes[1].scatter(P_C[:, 0], P_C[:, 1], s=10, alpha=0.55, color=CORES[2],
+                label="Classe C (núcleo)")
+axes[1].scatter(P_D[:, 0], P_D[:, 1], s=10, alpha=0.55, color=CORES[0],
+                label="Classe D (casca)")
 axes[1].set_title("Dataset II — cascas concêntricas")
 for ax in axes:
     ax.set_xlabel("PC1")
@@ -109,11 +123,11 @@ r_C = np.linalg.norm(X_C, axis=1)
 r_D = np.linalg.norm(X_D, axis=1)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
-axes[0].hist(r_A, bins=30, alpha=0.6, color="tab:blue",  label="Classe A")
-axes[0].hist(r_B, bins=30, alpha=0.6, color="tab:red",   label="Classe B")
+axes[0].hist(r_A, bins=30, alpha=0.65, color=CORES[3], label="Classe A")
+axes[0].hist(r_B, bins=30, alpha=0.65, color=CORES[1], label="Classe B")
 axes[0].set_title("Dataset I")
-axes[1].hist(r_C, bins=30, alpha=0.6, color="tab:green", label="Classe C (núcleo)")
-axes[1].hist(r_D, bins=30, alpha=0.6, color="tab:purple", label="Classe D (casca)")
+axes[1].hist(r_C, bins=30, alpha=0.65, color=CORES[2], label="Classe C (núcleo)")
+axes[1].hist(r_D, bins=30, alpha=0.65, color=CORES[0], label="Classe D (casca)")
 axes[1].set_title("Dataset II")
 for ax in axes:
     ax.set_xlabel("raio $\\|x\\|$")
@@ -128,60 +142,59 @@ print(f"Raios Dataset II — C: {r_C.mean():.2f} ± {r_C.std():.2f} "
       f"(mín {r_D.min():.2f})")
 
 # %% [markdown]
-# **Números.** Variância explicada por PC1+PC2: **0.6597** no Dataset I
+# **Os números.** Variância explicada por PC1+PC2: **0.6597** no Dataset I
 # (PC1 = 0.5004, PC2 = 0.1593) contra **0.4291** no Dataset II
-# (PC1 = 0.2159, PC2 = 0.2132). Distância entre centros em 5D: **3.2282** no
-# Dataset I (valor teórico $1.5\sqrt{5} = 3.354$) contra **0.2662** no Dataset II.
+# (PC1 = 0.2159, PC2 = 0.2132). Distância entre centros em 5D: **3.2282** no Dataset I
+# (o teórico é $1.5\sqrt{5} = 3.354$) contra **0.2662** no Dataset II.
 #
-# A projeção 2D preserva melhor a informação de classe no **Dataset I**: o
-# deslocamento entre as médias cria uma direção privilegiada de variância, que o PCA
-# captura em PC1 — na Figura 4 as classes aparecem como dois blocos com sobreposição
-# parcial. No Dataset II a variância é praticamente igual em todas as direções
-# (PC1 ≈ PC2 ≈ 21.5%, como esperado para dados isotrópicos em 5D), e a projeção mostra
-# apenas um disco com as classes misturadas — enquanto a Figura 5 mostra que, em 5D,
-# os raios das duas classes são perfeitamente separados
-# (C: 1.97 ± 0.40, máx 3.25; D: 5.00 ± 0.41, mín 3.75).
+# A projeção 2D preserva melhor a informação de classe no **Dataset I**: o deslocamento
+# entre as médias cria uma direção privilegiada de variância, e o PCA a captura em PC1 —
+# na Figura 4 dá para ver dois blocos com sobreposição parcial. No Dataset II a
+# variância é praticamente a mesma em toda direção (PC1 ≈ PC2 ≈ 21.5%, o esperado para
+# dados isotrópicos em 5D) e a projeção vira um borrão com as classes misturadas —
+# enquanto a Figura 5 mostra que, em 5D, os raios são perfeitamente separados
+# (C: 1.97 ± 0.40, máx 3.25; D: 5.00 ± 0.41, mín 3.75). Os histogramas nem se encostam.
 #
-# ## D — Analysis
+# ## D — Análise
 #
 # **1. Centros coincidentes × raios separados.** A distância entre os centros do
-# Dataset II é 0.2662 (≈ 0), mas os histogramas de raio não se tocam. Um hiperplano
-# separa por *posição ao longo de uma direção* — e as duas classes ocupam as mesmas
-# posições em todas as direções, diferindo apenas na *distância à origem*. Nenhum
-# hiperplano, portanto, separa as classes: a informação discriminante é radial, não
-# direcional.
+# Dataset II é 0.2662 (≈ 0), mas os histogramas de raio têm um vão entre 3.25 e 3.75.
+# Um hiperplano separa por *posição ao longo de uma direção* — e as duas classes ocupam
+# as mesmas posições em todas as direções, diferindo só na *distância à origem*.
+# Conclusão: hiperplano nenhum separa essas classes; a informação discriminante é
+# radial, não direcional.
 #
-# **2. Por que mais dados não resolvem.** Por simetria esférica, a projeção de cada
+# **2. Por que mais dados não salvam.** Por simetria esférica, a projeção de cada
 # classe sobre **qualquer** direção $w$ é simétrica em torno de zero, e as projeções
-# das duas classes se sobrepõem fortemente. Coletar mais dados apenas estima melhor
-# essas mesmas distribuições sobrepostas — o erro de qualquer classificador linear
-# permanece alto. A limitação é estrutural (da família de fronteiras), não estatística
-# (da amostra).
+# das duas classes se sobrepõem fortemente. Coletar mais dados só estima melhor essas
+# mesmas distribuições sobrepostas — o erro de qualquer fronteira linear continua alto.
+# A limitação é da *família de fronteiras*, não da amostra.
 #
-# **3. Projeção PCA misturada prova inseparabilidade?** Não. O PCA é uma transformação
-# **linear**, e o Dataset II é o contraexemplo: a projeção 2D é um borrão
-# (PC1+PC2 = 42.9%), mas as classes são perfeitamente separáveis por uma função
-# não-linear simples das entradas:
+# **3. Projeção PCA embolada prova inseparabilidade?** Não — e o Dataset II é o
+# contraexemplo perfeito. O PCA é uma transformação **linear**: a projeção 2D é um
+# borrão (PC1+PC2 = 42.9%), mas basta uma função não-linear simples das entradas para
+# separar tudo:
 #
 # $$ f(x) = \lVert x \rVert^2 = \sum_{i=1}^{5} x_i^2, \qquad
 # \text{classe C se } f(x) < 3.5^2 = 12.25 $$
 
 # %%
-# Verificação da função proposta (regra fixa, nada é treinado)
+# Conferindo a função proposta (regra fixa — nada é treinado)
 f_C = (X_C ** 2).sum(axis=1)
 f_D = (X_D ** 2).sum(axis=1)
-acc = ((f_C < 12.25).sum() + (f_D >= 12.25).sum()) / (2 * N)
-print(f"Regra f(x) = Σx² < 12.25 → acurácia na amostra: {acc:.4f}")
+acerto = ((f_C < 12.25).sum() + (f_D >= 12.25).sum()) / 1000
+print(f"Regra f(x) = Σx² < 12.25 → acurácia na amostra: {acerto:.4f}")
 
 # %% [markdown]
-# A regra $\sum_i x_i^2 < 12.25$ classifica corretamente **100%** das 1000 amostras.
-# O mesmo dado que parece inseparável sob qualquer lente linear torna-se trivialmente
-# separável após uma única transformação quadrática — exatamente o tipo de feature que
-# as camadas escondidas de uma rede aprendem a construir.
+# A regra $\sum_i x_i^2 < 12.25$ acerta **100%** das 1000 amostras. O mesmo dado que
+# parece impossível sob qualquer lente linear fica trivial depois de uma única
+# transformação quadrática — que é exatamente o tipo de feature que as camadas
+# escondidas de uma rede aprendem sozinhas.
 #
 # ---
 #
-# > **Aprendizado.** Distância entre centros não mede separabilidade, e uma ferramenta
-# > linear (PCA, hiperplano) não consegue nem diagnosticar estrutura não-linear. A
-# > separabilidade do Dataset II está na representação ($\lVert x \rVert^2$), não nos
-# > dados — é isso que justifica camadas escondidas com ativação não-linear.
+# > **O que eu tiro daqui:** distância entre centros não mede separabilidade, e
+# > ferramenta linear (PCA, hiperplano) não consegue nem *diagnosticar* estrutura
+# > não-linear. A separabilidade do Dataset II estava na representação
+# > ($\lVert x \rVert^2$), não nos dados — e é isso que justifica camadas escondidas
+# > com ativação não-linear.

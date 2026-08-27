@@ -9,25 +9,26 @@
 Atividade sobre geração, manipulação e preparação de dados para redes neurais. O fio
 condutor é a **dispersão**: quanto uma nuvem de pontos se espalha, em que direção, e
 como isso muda a dificuldade do problema de classificação. Nenhum modelo é treinado —
-todas as medidas são geométricas ou estatísticas.
+todas as medidas que uso aqui são geométricas ou estatísticas.
 
-## Estrutura do relatório
+## Como ataquei cada parte
 
 | Parte | Abordagem |
 |---|---|
-| [Exercise 1 — Point Clouds](ex1_point_clouds.ipynb) | Gerar 4 nuvens gaussianas 2D, medir separabilidade com a razão $r_{ij}$ e a mixing rate, e observar como ambas degradam com o fator de escala $s$. |
-| [Exercise 2 — Non-Linearity](ex2_nonlinearity.ipynb) | Contrastar dois datasets 5D — gaussianas deslocadas × cascas concêntricas — e comparar o que medidas lineares (PCA, distância entre centros) capturam em cada um. |
-| [Exercise 3 — Preprocessing](ex3_preprocessing.ipynb) | Pré-processar o Spaceship Titanic para uma rede com `tanh`: split estratificado antes de tudo, imputação, one-hot, `TotalSpend`, `log(1+x)` e escala $[-1,1]$, com todo `fit` restrito ao treino. |
-| [Results summary](summary.md) | Tabela-índice com os 13 números exigidos pelo enunciado. |
+| [Ex. 1 — Nuvens de pontos](ex1_point_clouds.ipynb) | Gero 4 nuvens gaussianas 2D e meço a separabilidade com a razão $r_{ij}$ e a mixing rate, observando como as duas degradam com o fator de escala $s$. |
+| [Ex. 2 — Não-linearidade](ex2_nonlinearity.ipynb) | Contrasto dois datasets 5D — gaussianas deslocadas × cascas concêntricas — e comparo o que medidas lineares (PCA, distância entre centros) enxergam em cada um. |
+| [Ex. 3 — Dados reais](ex3_preprocessing.ipynb) | Pré-processo o Spaceship Titanic para uma rede com `tanh`: split estratificado antes de tudo, imputação, one-hot, `TotalSpend`, `log(1+x)` e escala $[-1,1]$, com toda estatística calculada só no treino. |
+| [Resumo de resultados](summary.md) | Tabela-índice com os 13 números exigidos pelo enunciado. |
 
-## Regras técnicas seguidas
+## Regras técnicas que segui
 
-- Semente fixa `np.random.default_rng(42)` (Ex. 1 e 2) e `random_state=42` no split
+- Seed fixa `np.random.default_rng(42)` (Ex. 1 e 2) e `random_state=42` no split
   (Ex. 3); cada notebook roda de ponta a ponta e reproduz todos os números citados.
 - Bibliotecas: `numpy`, `pandas`, `matplotlib` e `scikit-learn` (PCA e pré-processamento
   apenas).
 - Todos os gráficos têm título, rótulos de eixo e legenda de classes; as Figuras 1–6
-  seguem a numeração do enunciado.
+  seguem a numeração do enunciado. A paleta âmbar/telha/oliva/aço é a mesma em todas as
+  figuras.
 
 ## Reprodução
 
@@ -39,7 +40,7 @@ pip install -r requirements.txt
 jupyter nbconvert --to notebook --execute --inplace docs/exercises/data/*.ipynb
 ```
 
-O dataset do Exercise 3 (`train.csv` do
+O dataset do Ex. 3 (`train.csv` do
 [Spaceship Titanic](https://www.kaggle.com/competitions/spaceship-titanic){:target="_blank"})
 está versionado em `docs/exercises/data/spaceship-titanic/`.
 

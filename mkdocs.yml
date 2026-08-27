@@ -9,28 +9,21 @@ theme:
   name: material
   language: pt-BR
   palette:
-    # Palette toggle for automatic mode
-    - media: "(prefers-color-scheme)"
-      primary: grey
+    # Padrão: modo escuro com acento âmbar
+    - scheme: slate
+      primary: black
+      accent: amber
       toggle:
-        icon: material/toggle-switch
+        icon: material/weather-sunny
         name: Mudar para modo claro
 
-    # Palette toggle for light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: grey
+    # Alternativa clara
+    - scheme: default
+      primary: black
+      accent: amber
       toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/weather-night
         name: Mudar para modo escuro
-
-    # Palette toggle for dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: grey
-      toggle:
-        icon: material/toggle-switch
-        name: Mudar para preferência do sistema
   features:
     - content.code.copy
     - content.code.select
@@ -136,6 +129,9 @@ plugins:
       allow_errors: false
       include_source: true
 
+extra_css:
+  - stylesheets/extra.css
+
 extra_javascript:
   - https://unpkg.com/mathjax/es5/tex-mml-chtml.js
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
@@ -149,10 +145,10 @@ nav:
   - Exercícios:
     - 1 — Data:
       - Relatório: exercises/data/index.md
-      - Exercise 1 — Point Clouds: exercises/data/ex1_point_clouds.ipynb
-      - Exercise 2 — Non-Linearity: exercises/data/ex2_nonlinearity.ipynb
-      - Exercise 3 — Preprocessing: exercises/data/ex3_preprocessing.ipynb
-      - Results summary: exercises/data/summary.md
+      - Ex. 1 — Nuvens de pontos: exercises/data/ex1_point_clouds.ipynb
+      - Ex. 2 — Não-linearidade: exercises/data/ex2_nonlinearity.ipynb
+      - Ex. 3 — Dados reais: exercises/data/ex3_preprocessing.ipynb
+      - Resumo de resultados: exercises/data/summary.md
     - 2 — Perceptron: exercises/perceptron/index.md
     - 3 — MLP: exercises/mlp/index.md
     - 4 — Transformers & Attention: exercises/transformers/index.md

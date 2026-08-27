@@ -1,8 +1,8 @@
-# Results summary
+# Resumo de resultados
 
-Tabela-índice dos números calculados nos três exercícios (esta é a última seção do
-relatório, conforme o enunciado). Cada valor está reportado e discutido na seção
-correspondente do notebook indicado.
+Tabela-índice dos números que calculei nos três exercícios (última seção do relatório,
+conforme o enunciado). Cada valor está reportado e discutido na seção correspondente do
+notebook indicado.
 
 | # | Item | Valor |
 |---|---|---|
@@ -20,6 +20,6 @@ correspondente do notebook indicado.
 | 12 | `shape` final da matriz de features de treino | **(6954, 17)** |
 | 13 | Mínimo e máximo de treino e teste após o scaling | treino **[−1.0000, 1.0000]** · teste **[−1.0000, 1.1383]** |
 
-Fontes: itens 1–5 no [Exercise 1](ex1_point_clouds.ipynb), itens 6–9 no
-[Exercise 2](ex2_nonlinearity.ipynb), itens 10–13 no
-[Exercise 3](ex3_preprocessing.ipynb).
+Fontes: itens 1–5 no [Ex. 1](ex1_point_clouds.ipynb), itens 6–9 no
+[Ex. 2](ex2_nonlinearity.ipynb), itens 10–13 no
+[Ex. 3](ex3_preprocessing.ipynb).

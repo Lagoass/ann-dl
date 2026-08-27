@@ -1,42 +1,53 @@
 # %% [markdown]
-# # Exercise 3 — Preparing Real-World Data for a Neural Network
+# # Exercício 3 — Preparando dados reais para uma rede neural
 #
 # Pré-processamento do [Spaceship Titanic](https://www.kaggle.com/competitions/spaceship-titanic)
-# (`train.csv`, o único arquivo rotulado) para uma rede com ativação `tanh` nas camadas
-# escondidas. Todas as estatísticas de transformação são ajustadas **apenas no treino**.
+# (`train.csv`, o único arquivo rotulado) para uma rede com `tanh` nas camadas
+# escondidas. A regra que rege o notebook inteiro: **toda estatística é calculada só no
+# treino** — o teste apenas recebe as transformações.
 #
-# Semente fixa: `random_state = 42` no split.
+# Seed fixa: `random_state = 42` no split.
 
 # %%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder
 
 SEED = 42
+
+# identidade visual dos meus gráficos: paleta fixa + eixos limpos
+CORES = ["#E8A13D", "#C75146", "#6B8F3D", "#33658A"]  # âmbar, telha, oliva, aço
+plt.rcParams.update({
+    "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.alpha": 0.25,
+    "axes.prop_cycle": plt.cycler(color=CORES),
+    "figure.dpi": 110,
+})
+
 df = pd.read_csv("spaceship-titanic/train.csv")
 print("shape bruto:", df.shape)
 df.head()
 
 # %% [markdown]
-# ## A — Get to know the data
+# ## A — Conhecer os dados
 #
-# **Objetivo do dataset.** Cada linha é um passageiro da nave; a coluna-alvo
-# `Transported` indica se ele foi transportado para outra dimensão na colisão com a
-# anomalia espaço-temporal. É um problema de **classificação binária**.
+# Cada linha é um passageiro da nave; a coluna-alvo `Transported` diz se ele foi
+# transportado para outra dimensão na colisão com a anomalia espaço-temporal. Ou seja:
+# **classificação binária**.
 
 # %%
-balance = df["Transported"].value_counts()
-print(balance.to_string())
+print(df["Transported"].value_counts().to_string())
 print(f"\nProporção da classe positiva (True): {df['Transported'].mean():.4f}")
 
 # %% [markdown]
-# **Balanço de classes:** 4378 `True` × 4315 `False` — a classe positiva representa
-# **50.36%** das 8693 amostras. O dataset é praticamente balanceado.
+# **Balanço de classes:** 4378 `True` × 4315 `False` — **50.36%** de positivos nas
+# 8693 amostras. Praticamente empatado, o que me poupa de qualquer malabarismo com
+# desbalanceamento.
 #
-# **Features** (descartando os identificadores `PassengerId`, `Name` e `Cabin`):
+# **Features** (fora os identificadores `PassengerId`, `Name` e `Cabin`, que eu
+# descarto):
 #
 # | Tipo | Colunas |
 # |---|---|
@@ -44,35 +55,33 @@ print(f"\nProporção da classe positiva (True): {df['Transported'].mean():.4f}"
 # | Categóricas | `HomePlanet`, `CryoSleep`, `Destination`, `VIP` |
 
 # %%
-SPEND = ["RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
-NUM = ["Age"] + SPEND
-CAT = ["HomePlanet", "CryoSleep", "Destination", "VIP"]
+GASTOS = ["RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
+NUMERICAS = ["Age"] + GASTOS
+CATEGORICAS = ["HomePlanet", "CryoSleep", "Destination", "VIP"]
 
-# Tabela de missing values por coluna
-missing = pd.DataFrame({
+# Tabela de valores faltantes por coluna
+faltantes = pd.DataFrame({
     "faltantes": df.isna().sum(),
     "%": (df.isna().mean() * 100).round(2),
 }).sort_values("faltantes", ascending=False)
-missing
+faltantes
 
 # %% [markdown]
-# Todas as colunas de entrada têm entre **179 e 217** valores faltantes
-# (**2.06% a 2.50%** cada); apenas `PassengerId` e `Transported` estão completas.
+# Todas as colunas de entrada têm entre **179 e 217** buracos (**2.06% a 2.50%** cada);
+# só `PassengerId` e `Transported` vêm completas.
 
 # %%
-# Estatísticas das colunas de gasto (dataset completo, apenas descrição — nada é fitado aqui)
-spend_stats = df[SPEND].agg(["mean", "median", "max"]).round(2)
-spend_stats
+# Estatísticas das colunas de gasto (só descrição — nada é ajustado aqui)
+df[GASTOS].agg(["mean", "median", "max"]).round(2)
 
 # %% [markdown]
 # **Média × mediana.** A mediana das cinco colunas de gasto é **0** — mais da metade
-# dos passageiros não gastou nada — enquanto as médias vão de 173.73 (`ShoppingMall`)
-# a 458.08 (`FoodCourt`) e os máximos chegam a 29813. Média muito acima da mediana é a
-# assinatura de distribuições com **forte assimetria à direita (cauda pesada)**: poucos
-# passageiros com gastos altíssimos puxam a média, e a dispersão é dominada por esses
-# extremos.
+# dos passageiros não gastou um centavo — enquanto as médias vão de 173.73
+# (`ShoppingMall`) a 458.08 (`FoodCourt`) e os máximos chegam a 29813. Média muito
+# acima da mediana é a assinatura clássica de **cauda pesada à direita**: uma minoria
+# gastadora puxa a média para cima e domina a dispersão.
 #
-# ## B — Split before you transform
+# ## B — Separar antes de transformar
 
 # %%
 X = df.drop(columns=["Transported", "Cabin", "Name", "PassengerId"])
@@ -81,57 +90,58 @@ y = df["Transported"]
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.20, stratify=y, random_state=SEED
 )
+X_train = X_train.copy()
+X_test = X_test.copy()
 print(f"treino: {X_train.shape} | teste: {X_test.shape}")
 print(f"proporção True — treino: {y_train.mean():.4f} | teste: {y_test.mean():.4f}")
 
 # %% [markdown]
-# Split **80/20 estratificado** pelo alvo com semente fixa: 6954 amostras de treino e
-# 1739 de teste, ambas com 50.4% de classe positiva.
+# Split **80/20 estratificado** pelo alvo com seed fixa: 6954 no treino, 1739 no teste,
+# os dois com 50.4% de positivos.
 #
-# **Por que o split vem antes?** O conjunto de teste simula dados que o modelo nunca
-# viu. Se qualquer estatística de transformação (mediana para imputação, mínimo/máximo
-# para escala, categorias observadas) for calculada com o dataset completo, informação
-# do teste vaza para dentro do pré-processamento e a avaliação deixa de ser confiável
-# (*data leakage*). Por isso todo `fit` daqui em diante usa somente o treino, e o teste
-# recebe apenas `transform`.
+# **Por que separar antes?** O teste existe para simular dado que o modelo nunca viu.
+# Se eu calculasse qualquer estatística (mediana, mínimo/máximo, categorias) com o
+# dataset inteiro, informação do teste vazaria para dentro do pré-processamento e a
+# avaliação viraria maquiagem (*data leakage*). Então daqui para baixo: estatística sai
+# **só do treino**, e o teste apenas recebe a transformação pronta.
 #
-# ## C — Preprocess
+# ## C — Pré-processar
 
 # %%
-# --- Missing data: mediana nas numéricas, moda nas categóricas (fit só no treino) ---
-imp_num = SimpleImputer(strategy="median").fit(X_train[NUM])
-imp_cat = SimpleImputer(strategy="most_frequent").fit(X_train[CAT])
+# --- Valores faltantes: mediana nas numéricas, moda nas categóricas (só do treino) ---
+medianas = X_train[NUMERICAS].median()
+modas = X_train[CATEGORICAS].mode().iloc[0]
 
-Xtr_num = pd.DataFrame(imp_num.transform(X_train[NUM]), columns=NUM, index=X_train.index)
-Xte_num = pd.DataFrame(imp_num.transform(X_test[NUM]), columns=NUM, index=X_test.index)
-Xtr_cat = pd.DataFrame(imp_cat.transform(X_train[CAT]), columns=CAT, index=X_train.index)
-Xte_cat = pd.DataFrame(imp_cat.transform(X_test[CAT]), columns=CAT, index=X_test.index)
+X_train[NUMERICAS] = X_train[NUMERICAS].fillna(medianas)
+X_test[NUMERICAS] = X_test[NUMERICAS].fillna(medianas)
+X_train[CATEGORICAS] = X_train[CATEGORICAS].fillna(modas)
+X_test[CATEGORICAS] = X_test[CATEGORICAS].fillna(modas)
 
-print("medianas (treino):", dict(zip(NUM, imp_num.statistics_)))
-print("modas (treino):   ", dict(zip(CAT, imp_cat.statistics_)))
+print("medianas (treino):", medianas.to_dict())
+print("modas (treino):   ", modas.to_dict())
 
 # %% [markdown]
-# **Justificativa.** Nas numéricas, a **mediana** é robusta às caudas pesadas vistas no
-# item A (a média seria puxada pelos extremos); na prática ela imputa `Age = 27` e
-# gasto `0`, o valor típico. Nas categóricas, a **moda** preserva a categoria mais
-# frequente sem inventar níveis novos.
+# **Por quê assim:** nas numéricas, a **mediana** é imune às caudas pesadas do item A
+# (a média seria puxada pelos gastões) — na prática ela imputa `Age = 27` e gasto `0`,
+# o valor típico. Nas categóricas, a **moda** preenche com a categoria mais comum sem
+# inventar níveis novos.
 
 # %%
-# --- Feature engineering: TotalSpend (após a imputação, para não somar NaN) ---
-for d in (Xtr_num, Xte_num):
-    d["TotalSpend"] = d[SPEND].sum(axis=1)
+# --- Feature engineering: TotalSpend (depois da imputação, senão a soma vira NaN) ---
+X_train["TotalSpend"] = X_train[GASTOS].sum(axis=1)
+X_test["TotalSpend"] = X_test[GASTOS].sum(axis=1)
 
 # --- Caudas pesadas: log(1 + x) nos gastos e no TotalSpend ---
-LOG_COLS = SPEND + ["TotalSpend"]
-spa_before = Xtr_num["Spa"].copy()          # guardado para o histograma
-for d in (Xtr_num, Xte_num):
-    d[LOG_COLS] = np.log1p(d[LOG_COLS])
+COLS_LOG = GASTOS + ["TotalSpend"]
+spa_antes = X_train["Spa"].copy()  # guardo para o histograma
+X_train[COLS_LOG] = np.log1p(X_train[COLS_LOG])
+X_test[COLS_LOG] = np.log1p(X_test[COLS_LOG])
 
 fig, axes = plt.subplots(1, 2, figsize=(11, 4))
-axes[0].hist(spa_before, bins=50, color="tab:blue")
+axes[0].hist(spa_antes, bins=50, color=CORES[3])
 axes[0].set_title("Spa — antes (escala original)")
 axes[0].set_xlabel("gasto")
-axes[1].hist(Xtr_num["Spa"], bins=50, color="tab:orange")
+axes[1].hist(X_train["Spa"], bins=50, color=CORES[0])
 axes[1].set_title("Spa — depois de log(1 + x)")
 axes[1].set_xlabel("log(1 + gasto)")
 for ax in axes:
@@ -141,93 +151,99 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# **Por que o log ajuda com `tanh`?** Sem ele, os máximos na casa de dezenas de
-# milhares dominam qualquer escala: após normalizar, a imensa maioria dos pontos fica
-# comprimida num intervalo minúsculo e os extremos caem na região onde o `tanh` satura
-# (derivada ≈ 0), travando o gradiente. O `log(1+x)` comprime a cauda e espalha a massa
-# de dados pela faixa útil da ativação, mantendo `0 → 0`.
+# **Por que o log importa para o `tanh`:** sem ele, os máximos na casa das dezenas de
+# milhares mandam na escala — depois de normalizar, quase todo mundo fica espremido num
+# intervalinho perto de $-1$ e os extremos caem onde o `tanh` satura (derivada ≈ 0).
+# Ali o gradiente morre de vez. O `log(1+x)` comprime a cauda, espalha a massa de dados
+# pela faixa útil da ativação e ainda mantém `0 → 0`.
 
 # %%
-# --- Categóricas: one-hot (fit só no treino) ---
-enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(Xtr_cat)
-Etr = enc.transform(Xtr_cat)
-Ete = enc.transform(Xte_cat)
+# --- Categóricas: one-hot (ajustado só no treino) ---
+codificador = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+codificador.fit(X_train[CATEGORICAS])
+onehot_treino = codificador.transform(X_train[CATEGORICAS])
+onehot_teste = codificador.transform(X_test[CATEGORICAS])
 print("categorias aprendidas no treino:")
-for c, cats in zip(CAT, enc.categories_):
-    print(f"  {c}: {list(cats)}")
+for col, cats in zip(CATEGORICAS, codificador.categories_):
+    print(f"  {col}: {list(cats)}")
 
 # %% [markdown]
-# **Categoria que só aparece no teste:** com `handle_unknown="ignore"`, um nível não
-# visto no treino é codificado como **vetor todo-zeros** naquele grupo de colunas — o
-# pipeline não quebra e nenhuma categoria do teste cria coluna nova. (Neste dataset as
-# categorias coincidem entre treino e teste, mas a garantia vale em geral.)
+# **E se aparecer uma categoria só no teste?** Com `handle_unknown="ignore"`, um nível
+# que o treino nunca viu vira um **vetor todo-zeros** naquele grupo de colunas — o
+# pipeline não quebra e o teste não cria coluna nova. (Aqui as categorias coincidem
+# entre treino e teste, mas a garantia vale em geral.)
 
 # %%
-# --- Escala: normalização para [-1, 1] nas numéricas (fit só no treino) ---
-scaler = MinMaxScaler(feature_range=(-1, 1)).fit(Xtr_num)
-Str = scaler.transform(Xtr_num)
-Ste = scaler.transform(Xte_num)
+# --- Escala: normalização para [-1, 1] nas numéricas, na mão (min/max só do treino) ---
+NUM_FINAIS = NUMERICAS + ["TotalSpend"]
+minimos = X_train[NUM_FINAIS].min()
+maximos = X_train[NUM_FINAIS].max()
 
-# matriz final = numéricas escaladas + one-hot (one-hot já está em {0, 1} ⊂ [-1, 1])
-feature_names = list(Xtr_num.columns) + list(enc.get_feature_names_out(CAT))
-X_train_final = np.hstack([Str, Etr])
-X_test_final = np.hstack([Ste, Ete])
+num_treino = 2 * (X_train[NUM_FINAIS] - minimos) / (maximos - minimos) - 1
+num_teste = 2 * (X_test[NUM_FINAIS] - minimos) / (maximos - minimos) - 1
+
+# matriz final = numéricas escaladas + one-hot (que já vive em {0, 1} ⊂ [-1, 1])
+nomes_features = NUM_FINAIS + list(codificador.get_feature_names_out(CATEGORICAS))
+X_train_final = np.hstack([num_treino.to_numpy(), onehot_treino])
+X_test_final = np.hstack([num_teste.to_numpy(), onehot_teste])
 
 print(f"treino — min: {X_train_final.min():.4f} | max: {X_train_final.max():.4f}")
 print(f"teste  — min: {X_test_final.min():.4f} | max: {X_test_final.max():.4f}")
 
 # %% [markdown]
-# **Escolha da escala.** Normalização para $[-1, 1]$ (`MinMaxScaler`), a faixa nativa
-# do `tanh`. No **treino** o resultado é exatamente $[-1.0000,\ 1.0000]$. No **teste**
-# o máximo chega a **1.1383** (`ShoppingMall` e `VRDeck` têm valores acima do máximo
-# visto no treino) — consequência esperada de ajustar a escala só no treino, e evidência
-# de que não houve vazamento; o leve estouro não afeta o `tanh`, que aceita qualquer
-# valor real.
+# **A escolha da escala.** Normalização para $[-1, 1]$, a faixa nativa do `tanh` — e
+# fiz na mão de propósito: min e max vêm **do treino**, a fórmula é
+# $2(x - \min)/(\max - \min) - 1$. No treino o resultado é exatamente
+# $[-1.0000,\ 1.0000]$. No teste o máximo chega a **1.1383** (`ShoppingMall` e
+# `VRDeck` têm valores acima do máximo visto no treino) — e isso não é bug: é a
+# consequência esperada de ajustar a escala só no treino, ou seja, evidência de que não
+# houve vazamento. O leve estouro não incomoda o `tanh`, que aceita qualquer real.
 #
-# ## D — Verify and visualize
+# ## D — Verificar e visualizar
 
 # %%
 # Figura 6 — FoodCourt antes (bruto) e depois (pipeline completo)
-fc_idx = feature_names.index("FoodCourt")
+idx_fc = nomes_features.index("FoodCourt")
 fig, axes = plt.subplots(1, 2, figsize=(11, 4))
-axes[0].hist(X_train["FoodCourt"].dropna(), bins=50, color="tab:blue")
-axes[0].set_title("Antes — valores brutos (treino)")
+axes[0].hist(df["FoodCourt"].dropna(), bins=50, color=CORES[3])
+axes[0].set_title("Antes — valores brutos")
 axes[0].set_xlabel("FoodCourt")
-axes[1].hist(X_train_final[:, fc_idx], bins=50, color="tab:orange")
+axes[1].hist(X_train_final[:, idx_fc], bins=50, color=CORES[0])
 axes[1].set_title("Depois — imputação + log(1+x) + escala [-1, 1]")
 axes[1].set_xlabel("FoodCourt processado")
 for ax in axes:
     ax.set_ylabel("contagem")
-fig.suptitle("Figura 6 — FoodCourt antes e depois do pré-processamento")
+fig.suptitle("Figura 6 — FoodCourt antes e depois do pré-processamento (treino)")
 plt.tight_layout()
 plt.show()
 
 # %%
-# Checagens finais explícitas
+# Checagens finais, explícitas
 print(f"NaN restantes — treino: {np.isnan(X_train_final).sum()} | "
       f"teste: {np.isnan(X_test_final).sum()}")
 print(f"shape final — treino: {X_train_final.shape} | teste: {X_test_final.shape}")
 print(f"faixa de valores — treino: [{X_train_final.min():.4f}, {X_train_final.max():.4f}] | "
       f"teste: [{X_test_final.min():.4f}, {X_test_final.max():.4f}]")
+fc_bruto = df.loc[X_train.index, "FoodCourt"]  # FoodCourt do treino, antes de transformar
 print(f"média/mediana de FoodCourt no treino ANTES de transformar: "
-      f"{X_train['FoodCourt'].mean():.2f} / {X_train['FoodCourt'].median():.2f}")
+      f"{fc_bruto.mean():.2f} / {fc_bruto.median():.2f}")
 
 # %% [markdown]
-# **Checagens:** nenhum `NaN` restante; matriz final de treino com shape
-# **(6954, 17)** (7 numéricas, incluindo `TotalSpend`, + 10 colunas one-hot); valores
-# em $[-1.0000, 1.0000]$ no treino e $[-1.0000, 1.1383]$ no teste — faixa compatível
-# com `tanh`.
+# **Checagens:** zero `NaN`; matriz final de treino com shape **(6954, 17)**
+# (7 numéricas, contando o `TotalSpend`, + 10 colunas one-hot); valores em
+# $[-1.0000, 1.0000]$ no treino e $[-1.0000, 1.1383]$ no teste — tudo em casa para o
+# `tanh`.
 #
-# **Reflexão.** A decisão de maior impacto no treinamento é o **`log(1+x)` nas colunas
-# de gasto**. Sem ele, a normalização para $[-1,1]$ seria ditada pelos máximos extremos
-# (até 29813), comprimindo mais de metade dos dados num intervalo minúsculo perto de
-# $-1$ — região de saturação do `tanh`, onde o gradiente praticamente desaparece. As
-# demais escolhas (mediana × média na imputação, one-hot, escala) mudam pouco a
-# geometria; o log muda o que a rede consegue enxergar.
+# **Reflexão.** Se eu tivesse que apostar em qual decisão mais afeta o treinamento, é o
+# **`log(1+x)` nos gastos**. Sem ele, a normalização seria ditada pelos máximos
+# extremos (até 29813) e mais de metade dos dados ficaria espremida num intervalo
+# minúsculo colado em $-1$ — justamente a região onde o `tanh` satura e o gradiente
+# some. As outras escolhas (mediana × média, one-hot, escala) mexem pouco na geometria;
+# o log muda o que a rede consegue enxergar.
 #
 # ---
 #
-# > **Aprendizado.** O pré-processamento define a geometria que a rede recebe — no caso
-# > do `tanh`, caudas comprimidas e entradas em $[-1, 1]$. E ajustar cada transformação
-# > apenas no treino é o que mantém o número reportado confiável: o teste estourar de
-# > leve a faixa da escala é o comportamento esperado de um pipeline sem vazamento.
+# > **O que eu tiro daqui:** pré-processar é decidir a geometria que a rede recebe — no
+# > caso do `tanh`, caudas comprimidas e entradas em $[-1, 1]$. E ajustar tudo só no
+# > treino é o que mantém o número confiável: o teste estourar de leve a faixa da
+# > escala é o comportamento *esperado* de um pipeline sem vazamento.
