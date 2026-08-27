@@ -1,0 +1,17 @@
+/* Identidade: links e detalhes em âmbar, casando com a paleta dos gráficos */
+:root {
+  --lagoa-ambar: #E8A13D;
+  --lagoa-ambar-claro: #FFB84D;
+}
+
+body[data-md-color-scheme="slate"],
+[data-md-color-scheme="slate"][data-md-color-primary="black"] {
+  --md-typeset-a-color: var(--lagoa-ambar);
+  --md-accent-fg-color: var(--lagoa-ambar-claro);
+}
+
+body[data-md-color-scheme="default"],
+[data-md-color-scheme="default"][data-md-color-primary="black"] {
+  --md-typeset-a-color: #B87817;
+  --md-accent-fg-color: var(--lagoa-ambar);
+}
