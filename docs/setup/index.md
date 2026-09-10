@@ -12,7 +12,7 @@ flowchart LR
     push --> ci["GitHub Actions<br/>.github/workflows/main.yaml"]:::orange
     ci --> build["pip install -r requirements.txt<br/>mkdocs gh-deploy --force"]
     build --> ghp[("branch gh-pages")]:::red
-    ghp --> site["lagoass.github.io/LagoaNNPages"]:::orange
+    ghp --> site["lagoass.github.io/ann-dl"]:::orange
     classDef red fill:#f55
     classDef orange fill:#ffa500
 ```
@@ -75,8 +75,8 @@ publica o site estático na branch `gh-pages`.
     senão os links canônicos e o botão do GitHub quebram:
 
     ``` yaml
-    site_url: https://lagoass.github.io/LagoaNNPages
-    repo_url: https://github.com/Lagoass/LagoaNNPages
+    site_url: https://lagoass.github.io/ann-dl
+    repo_url: https://github.com/Lagoass/ann-dl
     ```
 
 ## Cheat sheet de Markdown

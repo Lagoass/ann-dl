@@ -1,9 +1,9 @@
 site_name: ANN & DL — Gustavo Lagôa
 site_author: Lagôa, G.
 site_description: Entregas de Redes Neurais Artificiais e Deep Learning — Insper 2026.2
-site_url: https://lagoass.github.io/LagoaNNPages
-repo_url: https://github.com/Lagoass/LagoaNNPages
-repo_name: Lagoass/LagoaNNPages
+site_url: https://lagoass.github.io/ann-dl
+repo_url: https://github.com/Lagoass/ann-dl
+repo_name: Lagoass/ann-dl
 
 theme:
   name: material
@@ -107,7 +107,7 @@ plugins:
   # bater no rate limit da API do GitHub durante o `mkdocs serve`.
   - git-committers:
       enabled: !ENV [CI, false]
-      repository: Lagoass/LagoaNNPages
+      repository: Lagoass/ann-dl
       branch: main
       token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
   - search:
@@ -145,10 +145,9 @@ nav:
   - Exercícios:
     - 1 — Data:
       - Relatório: exercises/data/index.md
-      - Ex. 1 — Nuvens de pontos: exercises/data/ex1_point_clouds.ipynb
-      - Ex. 2 — Não-linearidade: exercises/data/ex2_nonlinearity.ipynb
-      - Ex. 3 — Dados reais: exercises/data/ex3_preprocessing.ipynb
-      - Resumo de resultados: exercises/data/summary.md
+      - "Anexo — Ex. 1 executado": exercises/data/ex1_point_clouds.ipynb
+      - "Anexo — Ex. 2 executado": exercises/data/ex2_nonlinearity.ipynb
+      - "Anexo — Ex. 3 executado": exercises/data/ex3_preprocessing.ipynb
     - 2 — Perceptron: exercises/perceptron/index.md
     - 3 — MLP: exercises/mlp/index.md
     - 4 — Transformers & Attention: exercises/transformers/index.md

@@ -1,8 +1,8 @@
-# LagoaNNPages
+# ann-dl — entregas
 
 Entregas de **Redes Neurais Artificiais & Deep Learning** — Insper 2026.2 — Gustavo Lagôa.
 
-📄 **Site publicado:** <https://lagoass.github.io/LagoaNNPages/>
+📄 **Site publicado:** <https://lagoass.github.io/ann-dl/>
 
 Baseado no [template de entrega](https://github.com/hsandmann/documentation.template)
 da disciplina (MkDocs + Material for MkDocs).
