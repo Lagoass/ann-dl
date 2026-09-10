@@ -19,6 +19,13 @@ ai_use: "Claude (Claude Code) na montagem do site e como par de programação no
     As versões em notebook, com as saídas executadas, ficam de anexo:
     [Ex. 1](ex1_point_clouds.ipynb) · [Ex. 2](ex2_nonlinearity.ipynb) · [Ex. 3](ex3_preprocessing.ipynb).
 
+!!! note "Uso de IA"
+
+    Usei Claude (Claude Code) na montagem do site e como par de programação no código,
+    nas figuras e na estrutura deste relatório. Revisei e sei explicar cada parte do que
+    está aqui. A mesma declaração está no front matter (`ai_use`) do fonte desta página,
+    como o formato de submissão exige.
+
 !!! note "Reprodutibilidade e a regra do `rng`"
 
     Cada exercício usa `rng = np.random.default_rng(42)` e consome o gerador na ordem
