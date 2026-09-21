@@ -40,5 +40,3 @@ jobs:
 
       # deploy
       - run: mkdocs gh-deploy --force
-        env:
-          MKDOCS_GIT_COMMITTERS_APIKEY: ${{ secrets.GITHUB_TOKEN }}

@@ -35,6 +35,7 @@ theme:
     - navigation.path
     - navigation.tracking
     - navigation.expand
+    - navigation.indexes
     - toc.follow
   icon:
     admonition:
@@ -55,7 +56,8 @@ markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
-  - markdown_grid_tables
+  - footnotes
+  - tables
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.details
@@ -67,6 +69,7 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.inlinehilite
+  # Inclusão de arquivos (--8<--): traz os scripts de code/ para os relatórios
   - pymdownx.snippets:
       url_download: true
       check_paths: true
@@ -78,83 +81,79 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-        - name: python
-          class: python
-          validator: !!python/name:markdown_exec.validator
-          format: !!python/name:markdown_exec.formatter
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
-  - footnotes
   - pymdownx.critic
   - pymdownx.caret
   - pymdownx.keys
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.blocks.caption
-  - tables
   - toc:
       permalink: true
 
 plugins:
   - glightbox
+  # A data da última alteração é a evidência do prazo de entrega
   - git-revision-date-localized:
       enable_creation_date: true
       fallback_to_build_date: true
   - git-authors
-  # Só roda no CI (onde há GITHUB_TOKEN); localmente fica desligado para não
-  # bater no rate limit da API do GitHub durante o `mkdocs serve`.
-  - git-committers:
-      enabled: !ENV [CI, false]
-      repository: Lagoass/ann-dl
-      branch: main
-      token: !ENV [MKDOCS_GIT_COMMITTERS_APIKEY, ""]
   - search:
       lang:
         - pt
         - en
-  - badges
   - minify:
       minify_html: true
-  - markdown-exec
-  - render_swagger:
-      allow_arbitrary_locations: true
-  - termynal:
-      prompt_literal_start:
-        - "$"
-        - ">"
   - mkdocs-jupyter:
       execute: false
       allow_errors: false
       include_source: true
+      # Sem isto, os .py de code/ virariam páginas do site
+      include: ["*.ipynb"]
+
+# Além dos links, valida as âncoras (#secao) — com --strict, âncora quebrada vira erro
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+# Os scripts de code/ ficam no repositório e são incluídos nos relatórios via --8<--,
+# mas não são páginas da navegação.
+not_in_nav: |
+  /exercises/*/code/*
+  /projects/*/code/*
 
 extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
-  - https://unpkg.com/mathjax/es5/tex-mml-chtml.js
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-  - https://fastly.jsdelivr.net/npm/jquery/dist/jquery.min.js
-  - https://fastly.jsdelivr.net/npm/echarts/dist/echarts.min.js
-  # Para a implementação do mkdocs-jupyter
+  # A configuração precisa vir ANTES da biblioteca do MathJax
   - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
   - Home: index.md
   - Exercícios:
-    - 1 — Data:
-      - Relatório: exercises/data/index.md
+    - Data:
+      - exercises/data/index.md
       - "Anexo — Ex. 1 executado": exercises/data/ex1_point_clouds.ipynb
       - "Anexo — Ex. 2 executado": exercises/data/ex2_nonlinearity.ipynb
       - "Anexo — Ex. 3 executado": exercises/data/ex3_preprocessing.ipynb
-    - 2 — Perceptron: exercises/perceptron/index.md
-    - 3 — MLP: exercises/mlp/index.md
-    - 4 — Transformers & Attention: exercises/transformers/index.md
-    - 5 — VAE: exercises/vae/index.md
-    - 6 — LLM Fine-Tuning: exercises/llm-finetuning/index.md
-  - Projetos:
-    - 1 — Classification: projects/classification/index.md
-    - 2 — Regression: projects/regression/index.md
-    - 3 — Generative: projects/generative/index.md
+    - Perceptron: exercises/perceptron/index.md
+    - MLP: exercises/mlp/index.md
+    - VAE: exercises/vae/index.md
+  - Projeto:
+    - projects/index.md
+    - 1. EDA: projects/eda/index.md
+    # Escolha UMA das duas linhas abaixo, e apague a outra (e a pasta que sobrar):
+    - 2. Classificação: projects/classification/index.md
+    - 2. Regressão: projects/regression/index.md
+    - 3. Generativo: projects/generative/index.md
+  - Raciocínio:
+    - raciocinio/index.md
+    - Data: raciocinio/data.md
   - Sobre este site: setup/index.md
