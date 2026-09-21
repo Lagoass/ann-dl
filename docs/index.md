@@ -22,7 +22,7 @@ material de preparação para a defesa oral.
 ## Exercícios (individuais — 40% da nota individual, 25% cada)
 
 - [x] [Data](exercises/data/index.md) · entregue em **10/set** ✅
-- [ ] [Perceptron](exercises/perceptron/index.md) · prazo **22/set (ter), 23:59**
+- [x] [Perceptron](exercises/perceptron/index.md) · entregue em **21/set** ✅ (prazo 22/set)
 - [ ] [MLP](exercises/mlp/index.md) · prazo **13/out (ter), 23:59**
 - [ ] [VAE](exercises/vae/index.md) · prazo **22/out (qui), 23:59**
 

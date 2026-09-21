@@ -156,4 +156,5 @@ nav:
   - Raciocínio:
     - raciocinio/index.md
     - Data: raciocinio/data.md
+    - Perceptron: raciocinio/perceptron.md
   - Sobre este site: setup/index.md

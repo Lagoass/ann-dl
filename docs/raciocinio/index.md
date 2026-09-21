@@ -12,7 +12,7 @@ foi feito assim — que é exatamente o que uma defesa pergunta.
 | Entrega | Documento |
 |---|---|
 | Exercício — Data | [Raciocínio do Data](data.md) |
-| Exercício — Perceptron | *após a entrega* |
+| Exercício — Perceptron | [Raciocínio do Perceptron](perceptron.md) — planejado em etapas antes do código |
 | Exercício — MLP | *após a entrega* |
 | Exercício — VAE | *após a entrega* |
 | Projeto (3 entregas) | *após cada entrega* |
