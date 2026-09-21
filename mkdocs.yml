@@ -138,6 +138,10 @@ extra_javascript:
 nav:
   - Home: index.md
   - Exercícios:
+    # Este index.md precisa ser o PRIMEIRO filho: com navigation.indexes, o Material usa
+    # o primeiro filho chamado index.md como página-índice da seção. Sem ele, o primeiro
+    # exercises/<slug>/index.md era absorvido no título e sumia do menu.
+    - exercises/index.md
     - Data:
       - exercises/data/index.md
       - "Anexo — Ex. 1 executado": exercises/data/ex1_point_clouds.ipynb
