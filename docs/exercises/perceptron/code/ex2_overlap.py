@@ -101,8 +101,7 @@ print(f"ordem em bloco (sem embaralhar): final = {rb['acc']:.4f} | pocket = {rb[
 # ------------------------------------------------------------------- C — Figuras
 xlim = (X[:, 0].min() - 0.5, X[:, 0].max() + 0.5)
 ylim = (X[:, 1].min() - 0.5, X[:, 1].max() + 0.5)
-erros_fim = predict(w_fim, b_fim, X) != y
-erros_pk = predict(pk["w"], pk["b"], X) != y
+erros_pk = predict(pk["w"], pk["b"], X) != y  # marco os erros do pocket (a fronteira que presta)
 
 fig, ax = plt.subplots(figsize=(7.5, 6.5))
 for k, cor in enumerate(CORES[:2]):

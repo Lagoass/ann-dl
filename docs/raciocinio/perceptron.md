@@ -23,11 +23,15 @@ ser passado: virou instrumento.
 ## Etapa 2 — O neurônio parado
 
 Medi a acurácia da reta aleatória do init, sem treinar. **Surpresa 1**: deu 61.50%, não
-os ~50% que eu esperava. Fui olhar: $\mathbf{w}_0 = [0.0099, -0.0083]$ — o sorteio caiu
-numa inclinação parecida com a boa (a direção $[1,1]$ separa as nuvens), e passando pela
-origem a reta já deixa boa parte da classe 0 de um lado. Lição: "reta aleatória" não é
-"50%", é "depende da sorte do sorteio" — e o 50% real de chute aparece só no Ex. 2, em
-outro contexto. Reportei o número verdadeiro.
+os ~50% que eu esperava. Minha primeira explicação foi preguiçosa — "o sorteio caiu numa
+inclinação parecida com a boa" — e ao conferir vi que estava **errada**: o ângulo entre
+$\mathbf{w}_0/\lVert \mathbf{w}_0 \rVert = [0.768, -0.641]$ e a direção que separa as
+classes, $[1,1]/\sqrt{2}$, é de **84.8°**, quase perpendicular. A causa real é o $b = 0$:
+a fronteira é obrigada a passar pela origem, as duas nuvens caem do mesmo lado dela
+(projeção média $+0.170$ contra $+0.637$) e, como a classe 1 está mais longe, o corte
+atravessa a nuvem da classe 0 — 81.7% de acerto numa classe, 41.3% na outra. Lição dupla:
+"reta aleatória" não é "50%", e **direção não é a única coisa que define uma fronteira** —
+o viés também. Foi o momento em que quase publiquei uma explicação plausível e falsa.
 
 ## Etapa 3 — Um update na mão
 
@@ -106,6 +110,7 @@ para $\eta = 1.0$; recalcular acurácia só em update), e fechei com a tabela de
 
 | Pergunta provável | Minha resposta em uma linha |
 |---|---|
+| Por que a reta do init, sem treino, já acerta 61.5%? | Não é alinhamento — ela está a 84.8° da direção boa. É o $b=0$: a fronteira passa pela origem, as duas nuvens ficam do mesmo lado e a mais distante (classe 1) acerta 81.7% enquanto a classe 0 acerta 41.3%. |
 | Por que $(y - \hat y)$ e não $y$ na regra de update? | Com rótulos 0/1, $y\,\mathbf{x}$ nunca atualiza na classe 0 — falso positivo nunca seria corrigido; $(y-\hat y)\in\{-1,0,+1\}$ dá as duas direções. |
 | Por que o enunciado proíbe começar de $\mathbf{w} = 0$? | Porque do zero os pesos de duas execuções diferem só por $\eta_2/\eta_1$: mesma fronteira, mesmas épocas — o item D sobre $\eta$ não teria o que comparar. |
 | O que $\eta$ controla, então? | A escala de cada passo ($\eta\,\mathbf{x}$); só importa relativo à init — por isso as direções diferem 2.09° e não zero. |

@@ -36,23 +36,36 @@ Configuração necessária **uma única vez** no repositório:
 
 ## Estrutura
 
+Os slugs e o formato `index.md` + `code/` + `figures/` são contrato com a correção
+([regras de submissão](https://insper.github.io/ann-dl/2026.2/exercises/submission/)) —
+não renomear.
+
 ```
 docs/
-├── index.md                  # home + checklist de entregas
-├── exercises/                # entregas individuais
-│   ├── data/                 # 1 — Data
-│   ├── perceptron/           # 2 — Perceptron
-│   ├── mlp/                  # 3 — MLP
-│   ├── transformers/         # 4 — Transformers & Attention
-│   ├── vae/                  # 5 — VAE
-│   └── llm-finetuning/       # 6 — LLM Fine-Tuning
-├── projects/                 # entregas em equipe
-│   ├── classification/       # 1 — Classification
-│   ├── regression/           # 2 — Regression
-│   └── generative/           # 3 — Generative
+├── index.md                  # capa: entregas, prazos e pesos
+├── exercises/                # 4 entregas individuais
+│   ├── index.md              # índice da seção
+│   ├── data/                 # relatório + code/ + figures/ + notebooks anexos
+│   ├── perceptron/           # idem
+│   ├── mlp/                  # a fazer (13/out)
+│   └── vae/                  # a fazer (22/out)
+├── projects/                 # UM projeto em três entregas
+│   ├── index.md              # equipe, dataset, registro de decisões
+│   ├── eda/                  # 1ª entrega (08/out)
+│   ├── classification/       # 2ª entrega — escolher uma...
+│   ├── regression/           # ...e apagar a outra (05/nov)
+│   └── generative/           # 3ª entrega (20/nov)
+├── raciocinio/               # thought process por entrega (preparo da defesa oral)
 └── setup/                    # como o site funciona + cheat sheet
+notebooks-src/                # fontes jupytext dos notebooks anexos do Data
 ```
 
-Cada nova página precisa ser registrada no `nav` do [`mkdocs.yml`](mkdocs.yml).
-Notebooks `.ipynb` podem ir direto para dentro de `docs/` — o plugin `mkdocs-jupyter`
-renderiza as saídas já salvas (`execute: false`).
+Cada nova página precisa ser registrada no `nav` do [`mkdocs.yml`](mkdocs.yml) — e, em
+seções que agrupam entregas, o `index.md` da seção tem que ser o **primeiro** filho
+(o `navigation.indexes` do Material absorve no título o primeiro filho chamado
+`index.md`, e sem isso a primeira entrega some do menu).
+
+O código de cada entrega vive em `code/` como arquivo executável e é puxado para o
+relatório com `--8<--`; as figuras são commitadas em `figures/`. Os notebooks `.ipynb`
+anexos são renderizados pelo `mkdocs-jupyter` com `execute: false`, ou seja, exibem as
+saídas já salvas.

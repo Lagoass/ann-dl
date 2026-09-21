@@ -63,8 +63,14 @@ sem mudança no Exercise 2:
 
 Dois números que medi para entender o que estava construindo. A inicialização sorteou
 $\mathbf{w}_0 = [0.0099, -0.0083]$, e essa reta aleatória, **sem treino**, já acerta
-**61.50%** — o sorteio caiu numa inclinação parecida com a boa (a direção $[1, 1]$); com
-outra seed poderia dar 40%. E um update feito na mão, no primeiro ponto errado:
+**61.50%**. E não é porque o sorteio caiu bem: $\mathbf{w}_0/\lVert \mathbf{w}_0 \rVert =
+[0.768, -0.641]$ está a **84.8°** da direção que de fato separa as classes
+($[1,1]/\sqrt{2}$) — praticamente perpendicular a ela. O que produz os 61.50% é o
+**viés zero**: com $b = 0$ a fronteira passa pela origem, e as duas nuvens ficam do mesmo
+lado dela em média (projeção média $+0.170$ para a classe 0 contra $+0.637$ para a
+classe 1). Como a classe 1 está mais longe da origem, a reta corta por dentro da nuvem da
+classe 0 — acerta 81.7% da classe 1 e só 41.3% da classe 0, o que dá os 61.50%. É sorte
+de geometria, não alinhamento. E um update feito na mão, no primeiro ponto errado:
 $\mathbf{x} = [2.541, -0.315]$, $y = 0$, $\hat y = 1$, erro $-1$ — antes,
 $\mathbf{w}\cdot\mathbf{x} + b = +0.0278$; depois de um único update, $-0.0477$: o ponto
 já cai do lado certo. É aqui que a forma dos livros
@@ -85,10 +91,14 @@ $b = -0.2000$, acurácia final **100.00%** — nenhum ponto mal classificado.
 ### D — Analysis
 
 **Por que converge tão rápido.** O update só acontece em erro; a cada erro a reta se move na
-direção que corrige aquele ponto, e em dado separável cada correção *fica* correta (não
-existe ponto do outro lado exigindo o movimento contrário). Os erros se esgotam: 48 updates
-na época 1, 0 na época 2. A Figura 3 mostra exatamente isso — a acurácia já é 100% ao fim
-da primeira época, e a curva de updates cai a zero.
+direção que corrige aquele ponto. Em dado separável as correções **não se contradizem**:
+existe uma reta que satisfaz todos os pontos ao mesmo tempo, então o processo tem para onde
+convergir e o total de updates é finito (é o que o teorema de convergência garante). Não é
+que cada correção individual seja definitiva — um update pode, em princípio, jogar outro
+ponto para o lado errado —, mas aqui isso nem chegou a acontecer: dos 48 pontos corrigidos,
+**nenhum** precisou de uma segunda correção. Os erros se esgotam: 48 updates na época 1,
+0 na época 2. A Figura 3 mostra exatamente isso — a acurácia já é 100% ao fim da primeira
+época, e a curva de updates cai a zero.
 
 **$\eta = 1.0$, sem mudar mais nada.** Também converge em **2 épocas** (25 updates, depois
 0) e também chega a **100.00%**, mas por outra reta: $\mathbf{w} = [1.7173,\ 1.6646]$,
