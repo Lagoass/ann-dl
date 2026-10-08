@@ -20,7 +20,7 @@ ai_use: "Claude (Claude Code) como par de programação na análise, no código 
     | Nome completo | GitHub |
     |---------------|--------|
     | Gustavo Doniani Lagôa Gomes | [@Lagoass](https://github.com/Lagoass) |
-    | Deena El Orra | — |
+    | Deena El Orra | [@DeenaElOrra](https://github.com/DeenaElOrra) |
 
     Dataset, decisões e status: [página do projeto](../index.md). O passo a passo do nosso
     raciocínio está em [Raciocínio — EDA](../../raciocinio/eda.md).

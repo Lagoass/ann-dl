@@ -12,7 +12,7 @@ ao longo do semestre, cada uma com data e peso próprios.
 | Nome completo | E-mail | GitHub |
 |---------------|--------|--------|
 | Gustavo Doniani Lagôa Gomes | gustavog6@al.insper.edu.br | [@Lagoass](https://github.com/Lagoass) |
-| Deena El Orra | — | — |
+| Deena El Orra | deenaeo@al.insper.edu.br | [@DeenaElOrra](https://github.com/DeenaElOrra) |
 
 Os nomes se repetem no cabeçalho de cada entrega — quem corrige pode abrir uma página
 sozinha, sem passar por aqui.
