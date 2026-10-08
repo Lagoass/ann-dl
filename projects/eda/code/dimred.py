@@ -98,7 +98,15 @@ Zs, ys = Z_tr[idx_s], y_arr[idx_s]
 rel_s = X_tr["relationship"].to_numpy()[idx_s]
 sexo_s = X_tr["sex"].to_numpy()[idx_s]
 mar_s = X_tr["marital-status"].to_numpy()[idx_s]
+gain_s = X_tr["capital-gain"].to_numpy()[idx_s]
+loss_s = X_tr["capital-loss"].to_numpy()[idx_s]
+# hipótese a testar: as ilhas destacadas são as pessoas com ganho ou perda de capital
+cap_s = np.where(gain_s > 0, "capital-gain > 0",
+                 np.where(loss_s > 0, "capital-loss > 0", "sem ganho nem perda"))
 print(f"amostra: {Zs.shape} | >50K = {ys.mean() * 100:.2f}%")
+for g in ("capital-gain > 0", "capital-loss > 0", "sem ganho nem perda"):
+    m = cap_s == g
+    print(f"   {g:20}: n={m.sum():4} | >50K = {ys[m].mean() * 100:.1f}%")
 
 mapas = {"PCA": pca2.transform(Zs)}
 for p in (30, 50):
@@ -109,15 +117,15 @@ for nn in (15, 50):
                                                 random_state=SEED).fit_transform(Zs)
 
 print(f"{'mapa':24} {'trust k=10':>11} {'trust k=50':>11} {'silh. income':>13} "
-      f"{'silh. relationship':>19} {'silh. sex':>10} {'silh. marital':>14}")
+      f"{'silh. relationship':>19} {'silh. sex':>10} {'silh. marital':>14} {'silh. capital':>14}")
 for nome, E in mapas.items():
     print(f"{nome:24} {trustworthiness(Zs, E, n_neighbors=10):11.3f} "
           f"{trustworthiness(Zs, E, n_neighbors=50):11.3f} {silhouette_score(E, ys):13.3f} "
           f"{silhouette_score(E, rel_s):19.3f} {silhouette_score(E, sexo_s):10.3f} "
-          f"{silhouette_score(E, mar_s):14.3f}")
+          f"{silhouette_score(E, mar_s):14.3f} {silhouette_score(E, cap_s):14.3f}")
 print(f"{'(espaço original)':24} {'—':>11} {'—':>11} {silhouette_score(Zs, ys):13.3f} "
       f"{silhouette_score(Zs, rel_s):19.3f} {silhouette_score(Zs, sexo_s):10.3f} "
-      f"{silhouette_score(Zs, mar_s):14.3f}")
+      f"{silhouette_score(Zs, mar_s):14.3f} {silhouette_score(Zs, cap_s):14.3f}")
 
 # controle: as mesmas colunas embaralhadas independentemente (destrói a estrutura conjunta)
 rng = np.random.default_rng(SEED)
@@ -135,18 +143,25 @@ plt.tight_layout()
 fig.savefig(FIG / "fig12-tsne-umap.png", bbox_inches="tight")
 plt.close(fig)
 
-fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
-cats = sorted(set(rel_s))
-for ax, nome in zip(axes, ["t-SNE perplexidade 30", "UMAP n_neighbors 15"]):
-    E = mapas[nome]
-    for cat, cor in zip(cats, CORES_REL):
-        m = rel_s == cat
-        ax.scatter(E[m, 0], E[m, 1], s=6, alpha=0.5, color=cor, label=cat)
-    ax.set_title(nome, fontsize=10)
-    ax.set_xlabel("dimensão 1")
-    ax.set_ylabel("dimensão 2")
-    ax.legend(title="relationship", markerscale=2.5, fontsize=7)
-fig.suptitle("Figura 13 — Os mesmos mapas da Figura 12, coloridos por relationship")
+fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+grupos = [
+    ("relationship", rel_s, sorted(set(rel_s)), CORES_REL),
+    ("ganho/perda de capital", cap_s, ["capital-gain > 0", "capital-loss > 0", "sem ganho nem perda"],
+     [CORES[0], CORES[1], "#9DB4C8"]),
+]
+for linha, (titulo_leg, rotulos, cats, cores) in enumerate(grupos):
+    for col, nome in enumerate(["t-SNE perplexidade 30", "UMAP n_neighbors 15"]):
+        ax = axes[linha, col]
+        E = mapas[nome]
+        for cat, cor in zip(cats, cores):
+            m = rotulos == cat
+            ax.scatter(E[m, 0], E[m, 1], s=6, alpha=0.5, color=cor, label=cat)
+        ax.set_title(f"{nome} — colorido por {titulo_leg}", fontsize=10)
+        ax.set_xlabel("dimensão 1")
+        ax.set_ylabel("dimensão 2")
+        ax.legend(title=titulo_leg, markerscale=2.5, fontsize=7)
+fig.suptitle("Figura 13 — Os mesmos mapas da Figura 12, coloridos por relationship (em cima) "
+             "e por ganho/perda de capital (embaixo)")
 plt.tight_layout()
 fig.savefig(FIG / "fig13-ilhas-relationship.png", bbox_inches="tight")
 plt.close(fig)

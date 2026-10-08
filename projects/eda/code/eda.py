@@ -14,6 +14,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from matplotlib.ticker import FixedLocator, FuncFormatter, NullFormatter
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
@@ -136,7 +138,9 @@ for ax, c in zip(axes, NUM_PLAIN):
         vc = tr[c].value_counts().sort_index()
         ax.bar(vc.index, vc.values, color=CORES[3], label="contagem por nível")
     else:
-        ax.hist(tr[c], bins=40, color=CORES[3], label="contagem")
+        # um bin por valor inteiro: bins que não casam com inteiros criam vales falsos
+        ax.hist(tr[c], bins=np.arange(tr[c].min() - 0.5, tr[c].max() + 1.5, 1),
+                color=CORES[3], label="contagem")
     ax.axvline(tr[c].mean(), color=CORES[1], ls="--", label=f"média {tr[c].mean():.1f}")
     ax.axvline(tr[c].median(), color=CORES[0], ls="-", label=f"mediana {tr[c].median():.0f}")
     ax.set_xlabel(c)
@@ -149,14 +153,21 @@ salva(fig, "fig02-numericas.png")
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 for ax, c in zip(axes, NUM_SKEWED):
     nz = tr.loc[tr[c] > 0, c]
-    ax.hist(nz, bins=np.logspace(np.log10(nz.min()), np.log10(nz.max()), 40), color=CORES[0],
-            label=f"não-zero: {len(nz)} ({len(nz) / len(tr):.1%})")
+    # a borda final vai além do máximo: com logspace exato até 99999, o arredondamento de
+    # ponto flutuante deixava os valores no teto fora do último bin
+    ax.hist(nz, bins=np.logspace(np.log10(nz.min()), np.log10(nz.max() * 1.05), 40),
+            color=CORES[0], label=f"não-zero: {len(nz)} ({len(nz) / len(tr):.1%})")
     ax.set_xscale("log")
+    ticks = [100, 1000, 10000, 99999] if c == "capital-gain" else [200, 500, 1000, 2000, 4000]
+    ax.xaxis.set_major_locator(FixedLocator(ticks))
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", ".")))
+    ax.xaxis.set_minor_formatter(NullFormatter())
     ax.plot([], [], " ", label=f"zeros: {(tr[c] == 0).mean():.1%} (fora do gráfico)")
     ax.set_xlabel(f"{c} (escala log, só valores > 0)")
     ax.set_ylabel("número de pessoas")
     ax.legend(fontsize=8)
-axes[0].annotate("teto 99999", (99999, 1), xytext=(15000, 60),
+n_teto = int((tr["capital-gain"] == 99999).sum())
+axes[0].annotate(f"{n_teto} pessoas no teto 99.999", (99999, n_teto), xytext=(9000, 200),
                  arrowprops={"arrowstyle": "->"}, fontsize=8)
 fig.suptitle("Figura 3 — capital-gain e capital-loss: massa em zero e cauda longa (treino)")
 plt.tight_layout()
@@ -179,12 +190,15 @@ for ax, c in zip(axes.ravel(), baixa):
     pct = (tr[c].fillna("NaN").value_counts(normalize=True) * 100).sort_values()
     cores = [CORES[1] if v < 1 else CORES[3] for v in pct.values]
     ax.barh(pct.index.astype(str), pct.values, color=cores)
+    for i, v in enumerate(pct.values):
+        ax.text(v + pct.max() * 0.01, i, f"{v:.2f}%" if v < 1 else f"{v:.1f}%",
+                va="center", fontsize=7, color=CORES[1] if v < 1 else "black")
     ax.axvline(1, color="black", ls=":", lw=1)
+    ax.set_xlim(0, pct.max() * 1.18)
     ax.set_title(c)
     ax.set_xlabel("% do treino")
-    ax.barh([], [], color=CORES[3], label="≥ 1%")
-    ax.barh([], [], color=CORES[1], label="< 1% (rara)")
-    ax.legend(fontsize=7, loc="lower right")
+    ax.legend(handles=[Patch(color=CORES[3], label="≥ 1%"), Patch(color=CORES[1], label="< 1% (rara)")],
+              fontsize=7, loc="lower right")
 fig.suptitle("Figura 4 — Frequência das categóricas de baixa cardinalidade (treino)")
 plt.tight_layout()
 salva(fig, "fig04-categoricas.png")
@@ -199,9 +213,9 @@ cores = [CORES[1] if (v < 1 or k.startswith("outros")) else CORES[3] for k, v in
 ax.barh(serie.index.astype(str), serie.values, color=cores)
 ax.set_xscale("log")
 ax.axvline(1, color="black", ls=":", lw=1)
-ax.barh([], [], color=CORES[3], label="≥ 1% do treino")
-ax.barh([], [], color=CORES[1], label="< 1% (agregado ou raro)")
-ax.legend(fontsize=8, loc="lower right")
+ax.legend(handles=[Patch(color=CORES[3], label="≥ 1% do treino"),
+                   Patch(color=CORES[1], label="< 1% (raro, ou soma de raros)")],
+          fontsize=8, loc="lower right")
 ax.set_title(f"Figura 5 — native-country: {tr[c].nunique()} países, cauda longa (treino)")
 ax.set_xlabel("% do treino (escala log)")
 ax.set_ylabel("país de origem")
@@ -226,9 +240,10 @@ ax.set_xticks(range(len(NUM)), NUM, rotation=35, ha="right")
 ax.set_yticks(range(len(NUM)), NUM)
 for i in range(len(NUM)):
     for j in range(len(NUM)):
-        ax.text(j, i, f"{sp.values[i, j]:.2f}", ha="center", va="center", fontsize=9)
+        ax.text(j, i, f"{sp.values[i, j]:.2f}", ha="center", va="center", fontsize=9,
+                color="white" if abs(sp.values[i, j]) > 0.6 else "black")
 fig.colorbar(im, ax=ax, label="ρ de Spearman")
-ax.set_title("Figura 6 — Correlação de Spearman entre as numéricas (treino)")
+fig.suptitle("Figura 6 — Correlação de Spearman entre as numéricas (treino)")
 ax.set_xlabel("feature")
 ax.set_ylabel("feature")
 ax.grid(False)

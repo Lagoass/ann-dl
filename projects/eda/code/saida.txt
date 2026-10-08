@@ -1,0 +1,247 @@
+### clone limpo 1dd71f1 | Python 3.12.15
+
+================================================================================
+1A — DICIONÁRIO
+================================================================================
+shape bruto: (32561, 15)
+  age              numérica    únicos=    73  exemplo=np.int64(39)
+  workclass        categórica  únicos=     8  exemplo='State-gov'
+  fnlwgt           numérica    únicos= 21648  exemplo=np.int64(77516)
+  education        categórica  únicos=    16  exemplo='Bachelors'
+  education-num    numérica    únicos=    16  exemplo=np.int64(13)
+  marital-status   categórica  únicos=     7  exemplo='Never-married'
+  occupation       categórica  únicos=    14  exemplo='Adm-clerical'
+  relationship     categórica  únicos=     6  exemplo='Not-in-family'
+  race             categórica  únicos=     5  exemplo='White'
+  sex              categórica  únicos=     2  exemplo='Male'
+  capital-gain     numérica    únicos=   119  exemplo=np.int64(2174)
+  capital-loss     numérica    únicos=    92  exemplo=np.int64(0)
+  hours-per-week   numérica    únicos=    94  exemplo=np.int64(40)
+  native-country   categórica  únicos=    41  exemplo='United-States'
+  income           categórica  únicos=     2  exemplo='<=50K'
+colunas constantes: []
+
+================================================================================
+1B — QUALIDADE
+================================================================================
+                faltantes     %
+age                     0  0.00
+workclass            1836  5.64
+fnlwgt                  0  0.00
+education               0  0.00
+education-num           0  0.00
+marital-status          0  0.00
+occupation           1843  5.66
+relationship            0  0.00
+race                    0  0.00
+sex                     0  0.00
+capital-gain            0  0.00
+capital-loss            0  0.00
+hours-per-week          0  0.00
+native-country        583  1.79
+income                  0  0.00
+linhas com algum faltante: 2399
+workclass NaN=1836 | occupation NaN=1843 | ambos=1836 | occupation NaN com workclass preenchido=7 (workclass delas: {'Never-worked': 7})
+>50K — geral 24.08% | entre workclass NaN 10.40% | entre native-country NaN 25.04%
+duplicatas exatas (15 colunas): 24
+relationship × sex:
+sex             Female   Male
+relationship                 
+Husband              1  13192
+Not-in-family     3875   4430
+Other-relative     430    551
+Own-child         2245   2823
+Unmarried         2654    792
+Wife              1566      2
+inconsistências (Husband+Female ou Wife+Male): 3
+valores no teto: age=90 → 43 | hours-per-week=99 → 85 | capital-gain=99999 → 159
+education ↔ education-num: máx. de valores por nível = 1 e 1 → bijeção de 16 níveis: Preschool=1, 1st-4th=2, 5th-6th=3, 7th-8th=4, 9th=5, 10th=6, 11th=7, 12th=8, HS-grad=9, Some-college=10, Assoc-voc=11, Assoc-acdm=12, Bachelors=13, Masters=14, Prof-school=15, Doctorate=16
+fnlwgt: média >50K 188005 vs ≤50K 190341 | Spearman com o alvo -0.0107
+investigação de vazamento — capital-gain:
+   capital-gain >=     1: n= 2712 | >50K= 61.8%
+   capital-gain >=  3000: n= 2240 | >50K= 74.9%
+   capital-gain >=  5000: n= 1648 | >50K= 90.8%
+   capital-gain >=  7000: n= 1399 | >50K= 98.6%
+   capital-gain >= 10000: n=  770 | >50K= 98.2%
+   capital-gain >= 99999: n=  159 | >50K=100.0%
+   capital-loss > 0: n=1519 | >50K=50.9%
+   gain>0 e loss>0 na mesma linha: 0
+
+após limpeza (−duplicatas, −education, −fnlwgt): (32537, 13) → 5 numéricas + 7 categóricas + alvo
+
+================================================================================
+1C — ALVO
+================================================================================
+{'≤50K': 24698, '>50K': 7839} | minoritária (>50K) = 24.09% | razão = 3.15:1 | baseline 'sempre ≤50K' acerta 75.91%
+
+================================================================================
+1D — TREINO E TESTE
+================================================================================
+treino (26029, 12) | teste (6508, 12) | >50K treino 24.09% | teste 24.09%
+
+================================================================================
+2A — NUMÉRICAS (treino)
+================================================================================
+                   mean  median      std   min   25%   50%   75%      max   skew
+age               38.55    37.0    13.65  17.0  28.0  37.0  47.0     90.0   0.56
+education-num     10.09    10.0     2.57   1.0   9.0  10.0  12.0     16.0  -0.31
+hours-per-week    40.43    40.0    12.43   1.0  40.0  40.0  45.0     99.0   0.23
+capital-gain    1064.60     0.0  7303.52   0.0   0.0   0.0   0.0  99999.0  12.07
+capital-loss      86.88     0.0   402.35   0.0   0.0   0.0   0.0   4356.0   4.61
+hours-per-week = 40 em 46.6% do treino
+education-num, 3 níveis mais comuns: {9: 32.3, 10: 22.4, 13: 16.4}
+capital-gain: zeros 91.6% | não-zero 2174 | mediana dos não-zero 7298 | máx 99999
+capital-loss: zeros 95.4% | não-zero 1204 | mediana dos não-zero 1887 | máx 4356
+capital-gain = 99999 no treino: 124
+
+================================================================================
+2B — CATEGÓRICAS (treino)
+================================================================================
+
+workclass: 8 níveis + NaN=1479 | top 'Private' 69.5% | raras (<1%): 2 níveis, 17 linhas
+   Private=69.5%, Self-emp-not-inc=7.8%, Local-gov=6.5%, nan=5.7%, State-gov=4.0%, Self-emp-inc=3.5%, Federal-gov=3.0%, Without-pay=0.0% ...
+   raras: Without-pay=0.05%, Never-worked=0.02%
+
+marital-status: 7 níveis + NaN=0 | top 'Married-civ-spouse' 45.9% | raras (<1%): 1 níveis, 17 linhas
+   Married-civ-spouse=45.9%, Never-married=33.0%, Divorced=13.5%, Separated=3.2%, Widowed=3.0%, Married-spouse-absent=1.3%, Married-AF-spouse=0.1%
+   raras: Married-AF-spouse=0.07%
+
+occupation: 14 níveis + NaN=1484 | top 'Prof-specialty' 12.7% | raras (<1%): 2 níveis, 125 linhas
+   Prof-specialty=12.7%, Craft-repair=12.6%, Exec-managerial=12.5%, Adm-clerical=11.5%, Sales=11.2%, Other-service=10.1%, Machine-op-inspct=6.1%, nan=5.7% ...
+   raras: Priv-house-serv=0.45%, Armed-Forces=0.03%
+
+relationship: 6 níveis + NaN=0 | top 'Husband' 40.5% | raras (<1%): 0 níveis, 0 linhas
+   Husband=40.5%, Not-in-family=25.4%, Own-child=15.7%, Unmarried=10.6%, Wife=4.8%, Other-relative=3.1%
+
+race: 5 níveis + NaN=0 | top 'White' 85.6% | raras (<1%): 2 níveis, 451 linhas
+   White=85.6%, Black=9.5%, Asian-Pac-Islander=3.2%, Amer-Indian-Eskimo=0.9%, Other=0.8%
+   raras: Amer-Indian-Eskimo=0.94%, Other=0.79%
+
+sex: 2 níveis + NaN=0 | top 'Male' 66.8% | raras (<1%): 0 níveis, 0 linhas
+   Male=66.8%, Female=33.2%
+
+native-country: 41 níveis + NaN=455 | top 'United-States' 89.7% | raras (<1%): 39 níveis, 1729 linhas
+   United-States=89.7%, Mexico=2.0%, nan=1.7%, Philippines=0.6%, Germany=0.4%, Canada=0.4%, Puerto-Rico=0.3%, Cuba=0.3% ...
+   raras: Philippines=0.60%, Germany=0.43%, Canada=0.36%, Puerto-Rico=0.35%, Cuba=0.32%, El-Salvador=0.31%, India=0.30%, England=0.29%, Vietnam=0.24%, Jamaica=0.23%, China=0.23%, Italy=0.22%, South=0.22%, Dominican-Republic=0.20%, Guatemala=0.19%, Poland=0.19%, Japan=0.18%, Columbia=0.17%, Taiwan=0.17%, Iran=0.13%, Haiti=0.13%, Portugal=0.12%, Greece=0.10%, Peru=0.10%, Nicaragua=0.10%, France=0.10%, Ecuador=0.08%, Ireland=0.08%, Hong=0.07%, Thailand=0.06%, Cambodia=0.06%, Laos=0.05%, Trinadad&Tobago=0.05%, Yugoslavia=0.05%, Honduras=0.05%, Outlying-US(Guam-USVI-etc)=0.04%, Scotland=0.04%, Hungary=0.03%, Holand-Netherlands=0.00%
+
+================================================================================
+3A — NUMÉRICA × NUMÉRICA (treino)
+================================================================================
+Spearman:
+                  age  education-num  hours-per-week  capital-gain  capital-loss
+age             1.000          0.071           0.145         0.126         0.059
+education-num   0.071          1.000           0.168         0.119         0.075
+hours-per-week  0.145          0.168           1.000         0.099         0.059
+capital-gain    0.126          0.119           0.099         1.000        -0.066
+capital-loss    0.059          0.075           0.059        -0.066         1.000
+Pearson:
+                  age  education-num  hours-per-week  capital-gain  capital-loss
+age             1.000          0.043           0.069         0.077         0.058
+education-num   0.043          1.000           0.148         0.123         0.080
+hours-per-week  0.069          0.148           1.000         0.080         0.053
+capital-gain    0.077          0.123           0.080         1.000        -0.031
+capital-loss    0.058          0.080           0.053        -0.031         1.000
+par mais correlacionado (|Spearman|): education-num × hours-per-week = +0.168 (Pearson +0.148)
+Spearman × Pearson em capital-gain × hours: +0.099 vs +0.080
+
+================================================================================
+3B — CATEGÓRICA × ALVO (treino)
+================================================================================
+taxa geral >50K no treino: 24.09%
+
+workclass: amplitude 55.3 p.p.
+   Self-emp-inc=55.3% (n=901), Federal-gov=38.8% (n=769), Local-gov=29.4% (n=1683), Self-emp-not-inc=28.3% (n=2041), State-gov=27.4% (n=1040), Private=21.9% (n=18099), NaN=10.5% (n=1479)
+
+marital-status: amplitude 40.0 p.p.
+   Married-civ-spouse=44.7% (n=11941), Divorced=10.4% (n=3523), Widowed=9.3% (n=782), Married-spouse-absent=8.8% (n=340), Separated=6.2% (n=826), Never-married=4.7% (n=8600)
+
+occupation: amplitude 48.2 p.p.
+   Exec-managerial=48.2% (n=3255), Prof-specialty=45.1% (n=3310), Protective-serv=32.2% (n=531), Tech-support=29.8% (n=738), Sales=26.4% (n=2916), Craft-repair=22.9% (n=3280), Transport-moving=20.5% (n=1263), Adm-clerical=13.2% (n=3003), Machine-op-inspct=12.5% (n=1598), Farming-fishing=12.1% (n=783), NaN=10.4% (n=1484), Handlers-cleaners=6.7% (n=1120), Other-service=4.5% (n=2623), Priv-house-serv=0.9% (n=117)
+
+relationship: amplitude 45.2 p.p.
+   Wife=46.5% (n=1247), Husband=45.0% (n=10529), Not-in-family=10.6% (n=6604), Unmarried=6.5% (n=2764), Other-relative=3.5% (n=803), Own-child=1.3% (n=4082)
+
+race: amplitude 16.4 p.p.
+   Asian-Pac-Islander=26.6% (n=830), White=25.6% (n=22270), Black=12.1% (n=2478), Amer-Indian-Eskimo=11.0% (n=245), Other=10.2% (n=206)
+
+sex: amplitude 20.0 p.p.
+   Male=30.7% (n=17397), Female=10.7% (n=8632)
+
+native-country: amplitude 42.9 p.p.
+   India=41.0% (n=78), Canada=36.8% (n=95), Germany=33.0% (n=112), England=32.0% (n=75), Philippines=31.0% (n=155), Italy=28.1% (n=57), China=26.7% (n=60), Cuba=25.6% (n=82), NaN=25.5% (n=455), United-States=24.5% (n=23336), Poland=20.0% (n=50), Jamaica=16.4% (n=61), South=15.8% (n=57), Puerto-Rico=8.8% (n=91), El-Salvador=8.6% (n=81), Vietnam=6.3% (n=63), Mexico=6.1% (n=509), Guatemala=4.0% (n=50), Dominican-Republic=3.9% (n=51)
+
+================================================================================
+3C — NUMÉRICA × CATEGÓRICA (treino)
+================================================================================
+age             ≤50K : mediana  34.0 | Q1  25.0 | Q3  46.0 | IQR  21.0 | dp 14.03
+age             >50K : mediana  44.0 | Q1  36.0 | Q3  51.0 | IQR  15.0 | dp 10.50
+education-num   ≤50K : mediana   9.0 | Q1   9.0 | Q3  10.0 | IQR   1.0 | dp  2.43
+education-num   >50K : mediana  13.0 | Q1  10.0 | Q3  13.0 | IQR   3.0 | dp  2.39
+hours-per-week  ≤50K : mediana  40.0 | Q1  35.0 | Q3  40.0 | IQR   5.0 | dp 12.38
+hours-per-week  >50K : mediana  40.0 | Q1  40.0 | Q3  50.0 | IQR  10.0 | dp 11.16
+hours-per-week  Male  : mediana  40.0 | Q1  40.0 | Q3  50.0 | IQR  10.0 | dp 12.17
+hours-per-week  Female: mediana  40.0 | Q1  30.0 | Q3  40.0 | IQR  10.0 | dp 11.92
+
+================================================================================
+4A — EVIDÊNCIAS PARA AS ESTRATÉGIAS (treino)
+================================================================================
+faltantes no treino: workclass 1479 | occupation 1484 | native-country 455
+>50K no treino — geral 24.09% | workclass NaN 10.48% | native-country NaN 25.49%
+se imputasse a moda ('Private'), a taxa >50K de 'Private' passaria de 21.90% para 21.03%
+regra IQR em capital-gain: Q1=0.0 Q3=0.0 → 2174 'outliers' (8.4%), com 61.3% de >50K; contêm 1333 dos 6271 positivos (21.3%)
+linhas afetadas pelo log1p (capital-gain>0 ou capital-loss>0): 3378 (13.0% do treino); linhas removidas: 0
+capital-gain: máximo a 13.5 desvios da média sem log | a 4.4 desvios com log1p
+capital-loss: máximo a 10.6 desvios da média sem log | a 5.1 desvios com log1p
+faixas das numéricas no treino: age 17–90 | education-num 1–16 | hours-per-week 1–99 | capital-gain 0–99999 | capital-loss 0–4356
+categorias que aparecem no teste e não no treino: nenhuma
+
+================================================================================
+4C — PIPELINE (ajustado só no treino)
+================================================================================
+NaN — treino 0 | teste 0
+shape — treino (26029, 50) | teste (6508, 50)
+50 features: num__age, num__education-num, num__hours-per-week, num_log__capital-gain, num_log__capital-loss, cat__workclass_Federal-gov, cat__workclass_Local-gov, cat__workclass_Private, cat__workclass_Self-emp-inc, cat__workclass_Self-emp-not-inc, cat__workclass_State-gov, cat__workclass_Unknown, cat__workclass_infrequent_sklearn, cat__marital-status_Divorced, cat__marital-status_Married-civ-spouse, cat__marital-status_Married-spouse-absent, cat__marital-status_Never-married, cat__marital-status_Separated, cat__marital-status_Widowed, cat__marital-status_infrequent_sklearn, cat__occupation_Adm-clerical, cat__occupation_Craft-repair, cat__occupation_Exec-managerial, cat__occupation_Farming-fishing, cat__occupation_Handlers-cleaners, cat__occupation_Machine-op-inspct, cat__occupation_Other-service, cat__occupation_Prof-specialty, cat__occupation_Protective-serv, cat__occupation_Sales, cat__occupation_Tech-support, cat__occupation_Transport-moving, cat__occupation_Unknown, cat__occupation_infrequent_sklearn, cat__relationship_Husband, cat__relationship_Not-in-family, cat__relationship_Other-relative, cat__relationship_Own-child, cat__relationship_Unmarried, cat__relationship_Wife, cat__race_Asian-Pac-Islander, cat__race_Black, cat__race_White, cat__race_infrequent_sklearn, cat__sex_Female, cat__sex_Male, cat__native-country_Mexico, cat__native-country_United-States, cat__native-country_Unknown, cat__native-country_infrequent_sklearn
+média das numéricas transformadas — treino: [-0.0, 0.0, -0.0, -0.0, 0.0]
+média das numéricas transformadas — teste : [0.013, -0.007, 0.006, -0.001, 0.009]
+categorias agrupadas em 'infrequent' (aprendidas no treino):
+   workclass: ['Never-worked', 'Without-pay']
+   marital-status: ['Married-AF-spouse']
+   occupation: ['Armed-Forces', 'Priv-house-serv']
+   race: ['Amer-Indian-Eskimo', 'Other']
+   native-country: ['Cambodia', 'Canada', 'China', 'Columbia', 'Cuba', 'Dominican-Republic', 'Ecuador', 'El-Salvador', 'England', 'France', 'Germany', 'Greece', 'Guatemala', 'Haiti', 'Holand-Netherlands', 'Honduras', 'Hong', 'Hungary', 'India', 'Iran', 'Ireland', 'Italy', 'Jamaica', 'Japan', 'Laos', 'Nicaragua', 'Outlying-US(Guam-USVI-etc)', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto-Rico', 'Scotland', 'South', 'Taiwan', 'Thailand', 'Trinadad&Tobago', 'Vietnam', 'Yugoslavia']
+medianas aprendidas no treino: {'age': np.float64(37.0), 'education-num': np.float64(10.0), 'hours-per-week': np.float64(40.0)}
+teste com categoria inédita (occupation='Astronaut'): coluna ativada → ['cat__occupation_infrequent_sklearn']
+figuras salvas em /home/runner/work/ann-dl/ann-dl/docs/projects/eda/figures
+[eda.py OK]
+/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/umap/umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(
+/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/umap/umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(
+
+================================================================================
+4B — PCA (treino inteiro)
+================================================================================
+50 colunas | autovalores ~0 (< 1e-10): 7
+variância explicada, 10 primeiras: [18.05, 12.32, 12.16, 10.71, 9.25, 6.97, 3.47, 2.93, 2.34, 1.94]
+PC1 = 18.05% | PC2 = 12.32% | PC1+PC2 = 30.37%
+   componentes para 50% da variância: 4
+   componentes para 80% da variância: 10
+   componentes para 90% da variância: 18
+   componentes para 95% da variância: 24
+loadings PC1 (8 maiores |peso|): num__age=+0.499, num__hours-per-week=+0.461, num_log__capital-gain=+0.359, num__education-num=+0.354, cat__relationship_Husband=+0.242, cat__marital-status_Married-civ-spouse=+0.239, cat__marital-status_Never-married=-0.222, num_log__capital-loss=+0.161
+loadings PC2 (8 maiores |peso|): num_log__capital-loss=+0.548, num__education-num=+0.539, num__age=-0.470, num__hours-per-week=+0.268, num_log__capital-gain=-0.258, cat__marital-status_Never-married=+0.136, cat__marital-status_Married-civ-spouse=-0.083, cat__relationship_Husband=-0.077
+
+================================================================================
+4B — t-SNE e UMAP (amostra estratificada do treino)
+================================================================================
+amostra: (3000, 50) | >50K = 24.10%
+mapa                      trust k=10  trust k=50  silh. income  silh. relationship  silh. sex  silh. marital
+PCA                            0.809       0.808         0.197              -0.008      0.077         -0.002
+t-SNE perplexidade 30          0.983       0.947         0.147               0.095      0.261          0.010
+t-SNE perplexidade 50          0.982       0.952         0.136               0.102      0.230          0.040
+UMAP n_neighbors 15            0.968       0.939         0.199               0.140      0.184          0.009
+UMAP n_neighbors 50            0.963       0.948         0.253               0.115      0.179          0.017
+(espaço original)                  —           —         0.092               0.100      0.103          0.091
+controle — t-SNE perplexidade 30 em colunas embaralhadas: silh. income -0.013 | trust k=10 0.945
+figuras salvas em /home/runner/work/ann-dl/ann-dl/docs/projects/eda/figures
+[dimred.py OK]
