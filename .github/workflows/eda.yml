@@ -1,0 +1,54 @@
+name: eda
+
+# Roda os scripts do EDA num clone limpo (Linux) e commita de volta as figuras e a saída.
+# Existe porque o Smart App Control da máquina local bloqueia as DLLs do scipy —
+# e de quebra prova, a cada execução, que o código roda a partir de um clone limpo.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs/projects/eda/code/**"
+      - "!docs/projects/eda/code/saida.txt"
+      - ".github/workflows/eda.yml"
+      - "requirements.txt"
+
+concurrency:
+  group: eda
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Roda o EDA a partir do clone limpo
+        working-directory: docs/projects/eda/code
+        run: |
+          {
+            echo "### clone limpo $(git rev-parse --short HEAD) | $(python --version 2>&1)"
+            python eda.py && echo "[eda.py OK]" || echo "[eda.py FALHOU]"
+            python dimred.py && echo "[dimred.py OK]" || echo "[dimred.py FALHOU]"
+          } > saida.txt 2>&1
+          cat saida.txt
+
+      - name: Commita figuras e saída
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/projects/eda/figures docs/projects/eda/code/saida.txt
+          if git diff --cached --quiet; then echo "nada mudou"; exit 0; fi
+          git commit -m "CI: regenera figuras e saida do EDA"
+          git pull --rebase origin main
+          git push origin HEAD:main
