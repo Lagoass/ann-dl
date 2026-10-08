@@ -1,4 +1,4 @@
-### clone limpo 1dd71f1 | Python 3.12.15
+### clone limpo 81cc2a2 | Python 3.12.15
 
 ================================================================================
 1A — DICIONÁRIO
@@ -235,13 +235,16 @@ loadings PC2 (8 maiores |peso|): num_log__capital-loss=+0.548, num__education-nu
 4B — t-SNE e UMAP (amostra estratificada do treino)
 ================================================================================
 amostra: (3000, 50) | >50K = 24.10%
-mapa                      trust k=10  trust k=50  silh. income  silh. relationship  silh. sex  silh. marital
-PCA                            0.809       0.808         0.197              -0.008      0.077         -0.002
-t-SNE perplexidade 30          0.983       0.947         0.147               0.095      0.261          0.010
-t-SNE perplexidade 50          0.982       0.952         0.136               0.102      0.230          0.040
-UMAP n_neighbors 15            0.968       0.939         0.199               0.140      0.184          0.009
-UMAP n_neighbors 50            0.963       0.948         0.253               0.115      0.179          0.017
-(espaço original)                  —           —         0.092               0.100      0.103          0.091
+   capital-gain > 0    : n= 229 | >50K = 58.5%
+   capital-loss > 0    : n= 139 | >50K = 55.4%
+   sem ganho nem perda : n=2632 | >50K = 19.5%
+mapa                      trust k=10  trust k=50  silh. income  silh. relationship  silh. sex  silh. marital  silh. capital
+PCA                            0.809       0.808         0.197              -0.008      0.077         -0.002          0.274
+t-SNE perplexidade 30          0.983       0.947         0.147               0.095      0.261          0.010          0.298
+t-SNE perplexidade 50          0.982       0.952         0.136               0.102      0.230          0.040          0.356
+UMAP n_neighbors 15            0.968       0.939         0.199               0.140      0.184          0.009          0.569
+UMAP n_neighbors 50            0.963       0.948         0.253               0.115      0.179          0.017          0.748
+(espaço original)                  —           —         0.092               0.100      0.103          0.091          0.310
 controle — t-SNE perplexidade 30 em colunas embaralhadas: silh. income -0.013 | trust k=10 0.945
 figuras salvas em /home/runner/work/ann-dl/ann-dl/docs/projects/eda/figures
 [dimred.py OK]
