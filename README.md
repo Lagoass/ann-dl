@@ -52,8 +52,8 @@ docs/
 ├── projects/                 # UM projeto em três entregas
 │   ├── index.md              # equipe, dataset, registro de decisões
 │   ├── eda/                  # 1ª entrega (08/out)
-│   ├── classification/       # 2ª entrega — escolher uma...
-│   ├── regression/           # ...e apagar a outra (05/nov)
+│   ├── data/                 # o dataset (Adult, UCI), compartilhado pelas três entregas
+│   ├── classification/       # 2ª entrega (05/nov)
 │   └── generative/           # 3ª entrega (20/nov)
 ├── raciocinio/               # thought process por entrega (preparo da defesa oral)
 └── setup/                    # como o site funciona + cheat sheet

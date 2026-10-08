@@ -15,4 +15,5 @@ foi feito assim — que é exatamente o que uma defesa pergunta.
 | Exercício — Perceptron | [Raciocínio do Perceptron](perceptron.md) — planejado em etapas antes do código |
 | Exercício — MLP | *após a entrega* |
 | Exercício — VAE | *após a entrega* |
-| Projeto (3 entregas) | *após cada entrega* |
+| Projeto — EDA | [Raciocínio do EDA](eda.md) — inclui as perguntas prováveis da prova de projeto |
+| Projeto — Classificação e Generativo | *após cada entrega* |

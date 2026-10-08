@@ -30,8 +30,8 @@ material de preparação para a defesa oral.
 
 Visão geral, equipe e dataset: [página do projeto](projects/index.md).
 
-- [ ] [1. EDA](projects/eda/index.md) · **08/out** · 20%
-- [ ] 2. [Classificação](projects/classification/index.md) **ou** [Regressão](projects/regression/index.md) · **05/nov** · 60%
+- [x] [1. EDA](projects/eda/index.md) · entregue em **08/out** ✅ · 20% — Adult Income, classificação, com Deena El Orra
+- [ ] [2. Classificação](projects/classification/index.md) · **05/nov** · 60%
 - [ ] [3. Generativo](projects/generative/index.md) · **20/nov** · 20%
 
 ## Provas
