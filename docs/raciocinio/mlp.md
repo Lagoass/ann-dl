@@ -1,7 +1,7 @@
 # Raciocínio — Exercício MLP
 
 Como pensei o [relatório do MLP](../exercises/mlp/index.md), na ordem real das decisões —
-incluindo as duas vezes em que um número me obrigou a investigar antes de seguir.
+incluindo as três vezes em que um número me obrigou a investigar antes de seguir.
 
 ## Etapa 0 — Ler o enunciado caçando o que custa nota
 
@@ -59,16 +59,17 @@ Dois cuidados que surgiram aqui:
 Escolher o learning rate pela acurácia de teste seria usar o teste para decidir, o mesmo
 vazamento que evitei no Data. Comparei learning rates olhando só a perda de treino:
 
-- **Ex. 2:** com 0.1, a perda ainda caía na época 2000 (0.1174); com 0.5, ela já estava em
-  platô desde a época 500 (0.1157 → 0.1101). A comparação está na `saida.txt`. Fiquei com
-  0.5 e 2000 épocas.
-- **Ex. 3:** 0.5 e 3000 épocas. Depois disso, a perda cai pouco.
+- **Ex. 2:** com 0.5, a perda na época 1000 (0.1130) já é menor que a de 0.1 na época 2000
+  (0.1174). As duas ainda caem devagar no fim; 0.5 só chega antes. A comparação está na
+  `saida.txt`. Fiquei com 0.5 e 2000 épocas.
+- **Ex. 3:** mantive 0.5 e usei 3000 épocas, olhando a Figura 4. A perda ainda cai devagar
+  depois disso, mas o que importa para o Ex. 4 é dar o mesmo orçamento às duas redes.
 
 ## Etapa 5 — Exercício 2: explicar o "pior que chutar"
 
 Minha hipótese, antes de rodar: a distribuição dos dados é **simétrica** em relação à origem. A perda
 logística é convexa, então o mínimo tem que ficar em w ≈ 0, e a regressão logística
-"desiste". Os números confirmaram (‖w‖ = 0.0297, probabilidade sempre entre 0.46 e 0.54).
+"desiste". Os números confirmaram (‖w‖ = 0.0297, probabilidade entre 0.457 e 0.544 no teste).
 
 O que eu não esperava era a explicação exata do 47.50%. A reta quase nula acerta um bloco
 inteiro, erra o outro inteiro e corta a classe 0 ao meio. No split de teste, o bloco errado
@@ -88,12 +89,19 @@ antes de confiar nisso.
 Com os 6 clusters na mão, usei de novo a régua do Data (r = distância / soma dos desvios). O
 par de classes 1 e 2 tinha o menor r (0.837 < 1, nuvens que se atravessam) e o menor r médio.
 **Previ o par 1 e 2 antes de ver a matriz de confusão, e foi esse o par que ela deu** (20
-trocas contra 17 do par 0 e 1). A margem é pequena e muda com a seed; o robusto é a classe 1
-estar no centro da confusão.
+trocas contra 17 do par 0 e 1).
 
-O mesmo raciocínio explicou o baseline. A regressão logística só faz regiões convexas, e o
-ponto médio entre os clusters da classe 2 fica mais perto da classe 1 do que deles próprios.
-O cluster 2 era o condenado, e foi nele que a MLP mais ganhou: de 41.3% para 84.8%.
+**Surpresa 2:** a verificação me mostrou que eu tinha acertado por sorte. Com as seeds 42 a
+46, o par 1 e 2 lidera em só 2 seeds; nas outras 3 lidera o 0 e 1 (somando, 92 contra 95).
+O que se repete em todas é a classe 1 nos dois pares do topo. A régua explica isso: o cluster
+1 é o único que se atravessa com clusters de **duas** outras classes. Lição: uma previsão que
+acerta uma seed não é evidência; é preciso repetir.
+
+O baseline: a regressão logística só faz regiões convexas, e a perda dela se concentra no
+cluster 2 (41.3%), que a MLP recupera (84.8%). Pensei primeiro numa explicação pelo ponto
+médio entre os clusters da classe 2, mas ela dependia de ruído da amostra: nos centroides
+exatos, as distâncias empatam. O que pesa é a forma esticada de cada nuvem em 4D, então
+fiquei com a medida direta, cluster a cluster.
 
 ## Etapa 7 — Exercício 4: um empate honesto, e o que a figura revelou
 
@@ -105,7 +113,7 @@ O resultado foi um empate: **+0.40 p.p.**, com desvio de 2.44 p.p. nas diferenç
 perda de treino caiu 42%: a rede funda ajusta muito melhor o treino sem ganhar no teste, e a
 distância entre treino e teste cresce de 7.65 para 10.68 p.p. É sobreajuste.
 
-**Surpresa 2:** a Figura 6 mostrou picos na curva da rede funda. Antes de escrever "instável",
+**Surpresa 3:** a Figura 6 mostrou picos na curva da rede funda. Antes de escrever "instável",
 medi: em 4 das 5 seeds, entre 449 e 1231 épocas *aumentam* a perda, e a rede rasa nunca
 piora. Com o mesmo learning rate, a descida do gradiente da rede funda está no limite da
 estabilidade. É o "custo em otimização" que o enunciado pede, medido em vez de suposto.
@@ -118,8 +126,8 @@ estabilidade. É o "custo em otimização" que o enunciado pede, medido em vez d
   backward é um só.
 - **"Pior que chutar" não quer dizer "impossível para uma reta".** Pode querer dizer "a perda
   convexa, por simetria, escolheu não decidir".
-- **Profundidade é ferramenta para estrutura composicional.** Em 6 nuvens num hipercubo, ela
-  só compra sobreajuste e instabilidade.
+- **Profundidade é ferramenta para estrutura composicional.** Neste dado, com lr 0.5 e
+  largura 16, ela não comprou teste distinguível; trouxe mais sobreajuste e oscilação.
 
 ## Perguntas que eu esperaria na defesa
 
@@ -133,6 +141,7 @@ estabilidade. É o "custo em otimização" que o enunciado pede, medido em vez d
 | Uma reta pode passar de 50% nesses dados? | Pode: a melhor reta faz 69.00% no teste, sacrificando um bloco. Nenhuma pega os dois, porque o segmento entre eles cruza a classe 0. |
 | Como o Ex. 3 reaproveita o Ex. 2 sem mudar código? | A mesma classe `MLP`; mudam só os argumentos (tamanhos e perda), porque toda perda entrega ∂L/∂u. |
 | Por que as classes 1 e 2 se confundem? | Os clusters delas têm o menor r (0.837 < 1): se atravessam, e o cluster 2 fica colado nos dois clusters da classe 1. |
-| O que a camada escondida acrescentou no Ex. 3? | Regiões não convexas: +17.3 p.p. no total; o cluster 2, que a convexidade condenava, foi de 41.3% para 84.8%. |
+| O par 1 e 2 é sempre o mais confundido? | Não: com as seeds 42 a 46, lidera em 2 e o 0 e 1 em 3. O robusto é a classe 1 nos dois pares do topo, porque o cluster 1 se atravessa com clusters de duas outras classes. |
+| O que a camada escondida acrescentou no Ex. 3? | Regiões não convexas: +17.3 p.p. no total; o cluster 2, onde a restrição convexa mais pesava, foi de 41.3% para 84.8%. |
 | A segunda camada ajudou? | Não de forma distinguível (+0.40 p.p., desvio de 2.44); baixou a perda de treino em 42%, mas aumentou o sobreajuste e a instabilidade. |
 | Que dados premiariam a profundidade? | Dados composicionais (tabuleiro com muitas casas, imagens), em que cada camada reaproveita as features da anterior. |

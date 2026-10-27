@@ -153,6 +153,8 @@ distância treino − teste, Ex. 3 — 1 camada escondida: 7.65 p.p.
 distância treino − teste, Ex. 4 — 2 camadas escondidas: 10.68 p.p.
 épocas com perda subindo, Ex. 3 — 1 camada escondida: [0, 0, 0, 0, 0] por seed | maior subida em uma época: -0.0000 | maior excesso sobre o mínimo anterior: 0.0000
 épocas com perda subindo, Ex. 4 — 2 camadas escondidas: [773, 449, 1152, 1231, 0] por seed | maior subida em uma época: 0.0184 | maior excesso sobre o mínimo anterior: 0.0674
+trocas no teste (pares 0-1, 0-2, 1-2), Ex. 3 — 1 camada escondida: [[17, 12, 20], [16, 10, 21], [22, 14, 17], [23, 12, 18], [17, 9, 16]] por seed | soma [95, 57, 92]
+trocas no teste (pares 0-1, 0-2, 1-2), Ex. 4 — 2 camadas escondidas: [[20, 7, 18], [21, 12, 17], [20, 9, 14], [24, 7, 18], [25, 14, 12]] por seed | soma [110, 49, 79]
 conferência: a rede rasa com seed 42 reproduz o Ex. 3? perda final 0.2508 | teste 0.8367
 figuras salvas em ../figures/
 [ex4_depth.py OK]

@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter, ScalarFormatter
+from sklearn.metrics import confusion_matrix
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
@@ -46,11 +47,14 @@ for nome, arq in ARQS.items():
         net.forward(Xs_tr)
         g0 = np.linalg.norm(net.backward(Y_tr)[0][0])
         hist = net.fit(Xs_tr, Y_tr, EPOCAS, LR)
+        pred_te = net.predict(Xs_te)
+        cm = confusion_matrix(y_te, pred_te)
         res[nome].append(dict(
             seed=seed, hist=hist, params=net.n_params(), g0=g0,
             perda=CategoricalCrossEntropy.value(net.forward(Xs_tr), Y_tr),
             acc_tr=(net.predict(Xs_tr) == y_tr).mean(),
-            acc_te=(net.predict(Xs_te) == y_te).mean(),
+            acc_te=(pred_te == y_te).mean(),
+            trocas=[int(cm[a, b] + cm[b, a]) for a, b in ((0, 1), (0, 2), (1, 2))],
         ))
 
 print(f"mesmo orçamento nas duas: {EPOCAS} épocas, lr = {LR}, lote completo, mesmo split do Ex. 3")
@@ -83,6 +87,10 @@ for nome in ARQS:
     print(f"épocas com perda subindo, {nome}: {[int((s > 0).sum()) for s in saltos]} por seed "
           f"| maior subida em uma época: {max(s.max() for s in saltos):.4f} "
           f"| maior excesso sobre o mínimo anterior: {excesso:.4f}")
+# o par mais confundido do Ex. 3D é robusto à seed? trocas no teste por par de classes
+for nome in ARQS:
+    print(f"trocas no teste (pares 0-1, 0-2, 1-2), {nome}: {[r['trocas'] for r in res[nome]]} por seed "
+          f"| soma {np.sum([r['trocas'] for r in res[nome]], axis=0).tolist()}")
 r42 = res["Ex. 3 — 1 camada escondida"][0]
 print(f"conferência: a rede rasa com seed 42 reproduz o Ex. 3? perda final {r42['perda']:.4f} | teste {r42['acc_te']:.4f}")
 

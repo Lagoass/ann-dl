@@ -162,9 +162,11 @@ para um passo pequeno o bastante na direção de $-\nabla L$, a perda sempre dim
 real (−0.316960) é menor que a prevista (−0.535542) porque $L$ não é linear: a previsão
 linear daria $0.400377 - 0.535542 < 0$, o que é impossível, já que $L \ge 0$. A curvatura
 pesa: $\hat y$ se aproxima de 1, a $\tanh$ satura e o ganho de cada passo encolhe. Aqui nem
-um $\eta$ maior faria a perda subir: como $y = 1$ e $\hat y = \tanh(u) < 1$, a saída nunca
-passa do alvo, e ao longo de $-\nabla L$ a perda cai para qualquer $\eta > 0$. Em geral,
-porém, um $\eta$ grande demais pode fazer o passo passar do mínimo e *aumentar* a perda.
+um $\eta$ maior faria a perda subir. Ao longo de $-\nabla L$, $b^{(2)}$ cresce, e os dois
+produtos $W^{(2)}_j h^{(1)}_j$ também: $W^{(2)}_1$ e $h^{(1)}_1$ crescem positivos, e
+$W^{(2)}_2$ e $h^{(1)}_2$ ficam cada vez mais negativos. Então $u^{(2)}$ e $\hat y$ sobem com
+$\eta$, sem nunca passar de $y = 1$, e $L$ cai para qualquer $\eta > 0$. Em geral, porém, um
+$\eta$ grande demais pode fazer o passo passar do mínimo e *aumentar* a perda.
 
 **Conferência por código.** O script abaixo refaz a conta com as fórmulas explícitas e depois
 roda a mesma rede pela classe genérica de `mlp.py` (com a perda `MSETanh`). A maior
@@ -229,7 +231,8 @@ de 1.
   cruzada binária.
 - **Learning rate 0.5** e **2000 épocas** em lote completo. Comparei com 0.1, partindo da
   mesma inicialização. Nas épocas 500, 1000 e 2000, a perda com 0.1 vale 0.1883, 0.1327 e
-  0.1174, e ainda cai. Com 0.5 vale 0.1157, 0.1130 e 0.1101: já está em platô.
+  0.1174. Com 0.5 vale 0.1157, 0.1130 e 0.1101: na época 1000 já está abaixo de onde 0.1
+  chega na 2000. No fim, as duas ainda caem devagar; 0.5 só chega antes.
 - A perda de treino vai de 0.7344 a **0.1101**.
 - **Acurácia de teste: 92.00%** (treino: 96.37%).
 
@@ -258,8 +261,8 @@ que sobra: **dois pedaços separados**, nos cantos nordeste e sudoeste. Dá para
 um semiplano é convexo: se contém dois pontos, contém o segmento entre eles. O segmento
 entre os dois blocos da classe 1, de $(3, 3)$ a $(-3, -3)$, passa por $(0, 0)$, o centro da
 classe 0. Então qualquer reta precisa abrir mão de um dos blocos ou do centro da classe 0.
-Como o centro tem 500 pontos e cada bloco 250, o melhor é sacrificar um bloco: no máximo
-75%. A **melhor reta
+Como o centro tem 500 pontos e cada bloco 250, o melhor é sacrificar um bloco, o que no caso
+ideal (cada bloco inteiro de um lado) dá 75%. A **melhor reta
 possível**, encontrada por busca exaustiva no treino, faz exatamente isso: acerta 74.25% no
 treino e 69.00% no teste, ficando com um bloco e o centro e sacrificando o outro bloco. Para
 pintar os dois cantos são precisas pelo menos duas fronteiras, uma de cada lado da faixa — e
@@ -272,8 +275,9 @@ reta.**
    à origem: trocar $\mathbf{x}$ por $-\mathbf{x}$ não muda a distribuição de nenhuma das duas
    classes. Então a perda logística de $(\mathbf{w}, b)$ é igual à de $(-\mathbf{w}, b)$, e
    como a perda é convexa, com mínimo único, o mínimo fica com $\mathbf{w} \approx 0$. A
-   amostra é só aproximadamente simétrica (no treino, o bloco $(3, 3)$ tem 208 pontos e o
-   $(-3, -3)$ tem 192), e por isso $\mathbf{w}$ sai quase nulo, e não exatamente nulo.
+   amostra é só aproximadamente simétrica, nas contagens (no treino, o bloco $(3, 3)$ tem 208
+   pontos e o $(-3, -3)$ tem 192) e nas posições sorteadas, e por isso $\mathbf{w}$ sai quase
+   nulo, e não exatamente nulo.
 2. **Os números confirmam.** Os pesos encontrados têm $\lVert\mathbf{w}\rVert = 0.0297$, e a
    probabilidade prevista nunca sai de [0.4566, 0.5438] no teste. A regressão logística
    praticamente desiste.
@@ -281,11 +285,11 @@ reta.**
    (tracejada na Figura 3) vira o sinal de flutuações minúsculas: passa quase vertical pelo
    meio, acerta **53%** da classe 0, **todo** o bloco $(3, 3)$ e **nada** do bloco
    $(-3, -3)$.
-4. **O "abaixo de 50%" vem do split, não de acaso.** Cada bloco tem 250 pontos, então o
-   bloco maior no treino é o menor no teste: $(3, 3)$ tem 208 contra 192 no treino e 42
-   contra 58 no teste. A regressão, com $\mathbf{w}$ quase nulo, pende para o bloco
-   majoritário do treino, que no teste fica em minoria: $(53 + 42 + 0)/200 = $ **47.50%**.
-   Não é limite da reta: a melhor reta chega a 69.00% no teste.
+4. **O "abaixo de 50%" vem deste split.** Cada bloco tem 250 pontos, então o bloco maior no
+   treino é o menor no teste: $(3, 3)$ tem 208 contra 192 no treino e 42 contra 58 no teste.
+   Neste split, a regressão pende para o bloco majoritário do treino, e ele fica em minoria
+   no teste: $(53 + 42 + 0)/200 = $ **47.50%**. Não é limite da reta: a melhor reta chega a
+   69.00% no teste.
 
 A MLP chega a 92.00% porque sua fronteira tem a forma certa. Os erros que sobram estão nas
 zonas onde os blocos se encostam (desvio 1.2 com centros a 4.24 de distância): 94% de
@@ -396,10 +400,13 @@ clusters (**0.837**) e o menor $r$ médio (1.129, contra 1.384 do par 0 e 2 e 1.
 e 1). O cluster 2 (classe 2) fica a um único lado do hipercubo de **dois** clusters da
 classe 1 (distâncias 2.082 e 1.917), e nos dois casos $r < 1$, o que no exercício Data
 significava nuvens que se atravessam. Essa leitura previa o par 1 e 2 **antes** de eu olhar
-a matriz de confusão, e foi esse o par que a matriz deu, mas por pouco: 20 trocas contra 17
-do par 0 e 1, uma margem que muda com a seed de inicialização. O que não muda é a estrutura:
-a classe 1 está no centro da confusão, porque o cluster 1 se atravessa com um cluster da
-classe 0 ($r = 0.983$) e com o cluster 2, da classe 2 ($r = 0.837$).
+a matriz de confusão, e foi esse o par que a Figura 5 deu, mas por pouco: 20 trocas contra 17
+do par 0 e 1. **Essa previsão não é robusta.** Treinando a mesma rede 4-16-3 com as seeds 42 a
+46 (no script do Exercício 4), o par 1 e 2 lidera em 2 seeds e o par 0 e 1 em 3; somando as
+cinco, são 92 contra 95 trocas. O que se repete em todas é a classe 1 nos dois pares mais
+confundidos, e o par 0 e 2 como o menos confundido. Isso a estrutura explica: o cluster 1 é o
+único que se atravessa ($r < 1$) com clusters de duas outras classes, o 0 ($r = 0.983$) e o
+2 ($r = 0.837$).
 
 Há também um piso de erro que nenhum modelo remove: o gerador sorteia ruído nos rótulos
 (`flip_y = 0.01`), e **11 das 1500** amostras ficaram com o rótulo trocado.
@@ -407,12 +414,10 @@ Há também um piso de erro que nenhum modelo remove: o gerador sorteia ruído n
 **O baseline e o que a camada escondida acrescentou.** A regressão logística multinomial
 acerta **66.33%** no teste. A MLP soma **17.3 pontos percentuais** a isso. A regressão
 logística só produz regiões **convexas**: a classe $k$ ganha onde seu escore linear é o
-maior, e essa região é uma interseção de semiplanos. Na amostra, o ponto médio entre os dois
-clusters da classe 2 fica mais perto de um cluster da classe 1 (1.608) do que deles próprios
-(1.772). Essa folga é da amostra: no gerador, os centroides são vértices exatos do hipercubo e
-essas distâncias empatam. Mas a ideia continua de pé. Uma região convexa que contenha os dois
-clusters da classe 2 precisa atravessar a zona onde a classe 1 está. O acerto por cluster no
-teste mostra o resultado:
+maior, e essa região é uma interseção de semiplanos. Só pelos centroides (vértices do
+hipercubo), as 6 nuvens seriam separáveis assim. O que atrapalha é a forma de cada nuvem: o
+gerador estica cada uma com uma transformação aleatória, e isso não aparece numa régua de um
+eixo só. Por isso medi o efeito direto, cluster a cluster, no teste:
 
 | Cluster (classe) | Regressão logística | MLP |
 |---|---|---|
@@ -423,10 +428,9 @@ teste mostra o resultado:
 | 4 (classe 1) | 65.3% | 95.9% |
 | 5 (classe 2) | 76.8% | 87.5% |
 
-O maior ganho está no cluster 2: de 41.3% para 84.8%. É o cluster que a convexidade
-condenava. A camada escondida permite regiões não convexas e cobre os dois clusters de cada
-classe. O cluster 1 continua o mais difícil para os dois modelos (51.0% e 57.1%), porque se
-sobrepõe a dois vizinhos com $r < 1$.
+O maior ganho está no cluster 2: de 41.3% para 84.8%. É onde a restrição convexa mais pesou,
+e a camada escondida, com regiões não convexas, recupera esse cluster. Para a MLP, o cluster
+mais difícil é o 1 (57.1%), o mesmo que se atravessa com clusters de duas outras classes.
 
 ## Exercise 4 — Does a Second Hidden Layer Help?
 
@@ -477,8 +481,9 @@ estrutura nova aprendida.
 - **O que os dados pedem.** São 6 clusters em formato de nuvem, em vértices de um hipercubo.
   As fronteiras entre eles são poucas e simples: uma camada com 16 unidades `tanh` já chega a
   91.38% no treino, em média. O que sobra vem da sobreposição real (o cluster 1 se atravessa
-  com dois vizinhos, $r < 1$) e dos 11 rótulos com ruído. Não medi quanto desse erro é
-  irredutível; o que medi é que a segunda camada não o reduz no teste.
+  com dois vizinhos, $r < 1$) e dos rótulos trocados pelo gerador (11 no dataset). Não medi
+  quanto desse erro é irredutível; o que medi é que a segunda camada não o reduz de forma
+  distinguível no teste (+0.40 p.p., com desvio de 2.44).
 - **O que a segunda camada acrescenta.** Ela permite compor features de features, uma
   representação hierárquica de que esses dados não precisam. Sem estrutura a compor, os 272
   parâmetros extras (3 vezes mais no total) acabam memorizando a sobreposição do treino.
@@ -509,6 +514,6 @@ extra aprender estrutura, em vez de ruído.
 | 4 | Ex. 2 — linear baseline test accuracy | **47.50%** |
 | 5 | Ex. 2 — architecture and test accuracy | 2-8-1 (`tanh` + sigmoide, BCE, lr 0.5, 2000 épocas) · **92.00%** |
 | 6 | Ex. 3 — architecture and test accuracy | 4-16-3 (`tanh` + softmax, entropia cruzada, lr 0.5, 3000 épocas) · **83.67%** |
-| 7 | Ex. 3 — most-confused class pair | **classes 1 e 2** (15 + 5 = 20 trocas) |
+| 7 | Ex. 3 — most-confused class pair | **classes 1 e 2** na Figura 5 (15 + 5 = 20 trocas, contra 17 do par 0 e 1; com as seeds 44 a 46, o par 0 e 1 passa à frente) |
 | 8 | Ex. 4 — architecture and test accuracy | 4-16-16-3 (mesmo orçamento do Ex. 3) · **85.00%** (seed 42; média de 5 seeds 84.13%) |
 | 9 | Ex. 4 — accuracy difference against Ex. 3 (mean over ≥ 3 seeds) | **+0.40 p.p.** (5 seeds; desvio das diferenças 2.44 p.p. — dentro do ruído) |
