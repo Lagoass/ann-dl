@@ -23,8 +23,8 @@ material de preparação para a defesa oral.
 
 - [x] [Data](exercises/data/index.md) · entregue em **10/set** ✅
 - [x] [Perceptron](exercises/perceptron/index.md) · entregue em **21/set** ✅ (prazo 22/set)
-- [ ] [MLP](exercises/mlp/index.md) · prazo **13/out (ter), 23:59**
-- [ ] [VAE](exercises/vae/index.md) · prazo **22/out (qui), 23:59**
+- [x] [MLP](exercises/mlp/index.md) · entregue em **27/out** ✅ (prazo adiado)
+- [ ] [VAE](exercises/vae/index.md) · prazo **01/nov (dom), 23:59**
 
 ## Projeto (equipe — um projeto, três entregas)
 

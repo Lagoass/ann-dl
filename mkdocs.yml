@@ -159,5 +159,6 @@ nav:
     - raciocinio/index.md
     - Data: raciocinio/data.md
     - Perceptron: raciocinio/perceptron.md
+    - MLP: raciocinio/mlp.md
     - Projeto — EDA: raciocinio/eda.md
   - Sobre este site: setup/index.md

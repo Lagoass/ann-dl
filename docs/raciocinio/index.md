@@ -13,7 +13,7 @@ foi feito assim — que é exatamente o que uma defesa pergunta.
 |---|---|
 | Exercício — Data | [Raciocínio do Data](data.md) |
 | Exercício — Perceptron | [Raciocínio do Perceptron](perceptron.md) — planejado em etapas antes do código |
-| Exercício — MLP | *após a entrega* |
+| Exercício — MLP | [Raciocínio do MLP](mlp.md) — o design do +1, a checagem de gradiente e o empate honesto do Ex. 4 |
 | Exercício — VAE | *após a entrega* |
 | Projeto — EDA | [Raciocínio do EDA](eda.md) — inclui as perguntas prováveis da prova de projeto |
 | Projeto — Classificação e Generativo | *após cada entrega* |
